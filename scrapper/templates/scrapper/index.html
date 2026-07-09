@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html>
+<head>  
+  <link href="{% static 'scrapper/mvp.css' %}" rel="stylesheet"></link>    
+  <link rel="icon" href="{% static 'scrapper/favicon.ico'%}"></link>
+  
+  <title>Security News Scrapper</title>
+  <style>
+    #loader { display: block; }
+    #content { display: none; }
+  </style>
+  
+</head>
+
+<body>
+  <header>
+    <h1>
+      <a href="/">Security News Scrapper</a>
+    </h1>
+    <!--
+    <h4> 현재 KISA 인터넷 침해사고 경보단계 : <font color="#cc0101"><b>{{t_info}}</b></font> </h4>     -->
+    <!--<h3>{{count}}개 기사를 수집하였습니다. </h3>-->
+  </header>
+  <main>
+    <div id="loader">
+      <center>
+        <h3> 기사를 불러오는 중입니다...</h3>
+      </center>      
+    </div>
+    <div id="content">
+    </div>
+    <script>      
+      document.addEventListener("DOMContentLoaded", function(){
+        const loadDiv = document.getElementById('loader');
+        const contentDiv = document.getElementById('content');        
+        fetch('get-data/')          
+          .then(response => {
+            console.log("moo 1");
+            //console.log(response.data.article)
+            return response.json()})
+          .then(data => {       
+            console.log("moo 2");
+            const articles = data.article;
+            console.log("moo 3");           
+            articles.forEach(item => {
+              const articleDiv = document.createElement('div');
+              articleDiv.innerHTML = `
+                <h3>${item.cat} | <a href="${item.link}" target="_blank">${item.title}</a> - ${item.media}</h3>
+                <h4>${item.pubDate} | <a href="${item.link}" target="_blank">${item.link}</a></h4>      
+                <h4><i>기사 요약</i> <br>${item.description}</h4>
+                <h4><i>기사 전문</i> <br>${item.text}</h4>
+                <br/>
+                <br/>
+                `;
+              contentDiv.appendChild(articleDiv);            
+            });
+            loadDiv.style.display = 'none';
+            contentDiv.style.display = 'block';
+          })
+          .catch(error => console.error('기사 로딩 중 오류 발생:',error));
+        });      
+    </script>    
+  </main>  
+</body>
+</html>
