@@ -79,11 +79,11 @@ def init():
         else:
             for news in news_list:
                 if models.News.objects.filter(link=news['originallink']).exists():
-                    print("중복 기사입니다. 키워드만 추가합니다.")
+                    print(" 중복 기사입니다. 키워드만 추가합니다.")
                     add_key = models.Keywords.objects.get(keyword=word)
                     models.News.objects.get(link=news['originallink']).cat.add(add_key)
                 else:
-                    print("신규 기사입니다. 기사를 스크랩합니다.")
+                    print(" 신규 기사입니다. 기사를 스크랩합니다.")
                     scrap_news(word,news)
 
 
