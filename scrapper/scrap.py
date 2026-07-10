@@ -85,7 +85,9 @@ def handle_news_list(news_list, word):
 
 
 def convert_news_pubDate_to_date(time):
-    return datetime.datetime.strptime(time,'%a, %d %b %Y %H:%M:%S +0900')
+    tz = datetime.timezone(datetime.timedelta(hours=9))
+    converted_naive = datetime.datetime.strptime(time,'%a, %d %b %Y %H:%M:%S +0900')
+    return converted_naive.replace(tzinfo=tz)
 
 
 def get_news_list(word,start_time,w_day):
@@ -157,7 +159,8 @@ def load_news(start_time,w_day):
 
 
 def get_time_day():
-    start_time = datetime.datetime.now()    
+    tz = datetime.timezone(datetime.timedelta(hours=9))
+    start_time = datetime.datetime.now(tz=tz)    
     w_day = start_time.weekday()
     return start_time, w_day  
 
@@ -172,7 +175,7 @@ def init():
         return scrapped_news
     else: 
         print("DB에 기사가 없습니다. 스크랩을 시작합니다.")
-        keywords =  get_model_data('Keywords')   
+        keywords =  get_model_data('Keywords') 
         for word in keywords:
             news_list = get_news_list(word,start_time,w_day)
             handle_news_list(news_list, word)
