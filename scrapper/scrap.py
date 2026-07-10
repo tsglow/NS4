@@ -1,4 +1,4 @@
-import newspaper, datetime, requests
+import newspaper, datetime, requests, bs4
 from django.apps import apps
 from django.conf import settings
 from . import models
@@ -62,7 +62,54 @@ def get_news(word,start_time,w_day):
     return sorted_news_list
             
 
-def scrap_news(word,news):
+def extract_media(link, headers):
+    domain = link.split('/')
+    if len(domain) < 2:
+        print("    도메인 : 추출 에러. 잘못된 링크입니다.")
+        domain = "http://unknown"
+        media_name = "Unknown"        
+        media = models.Media(domain=domain, media_name=media_name)
+        return media
+    else:
+        if models.Media.objects.filter(domain=domain[2]).exists():
+            print("    도메인 : 기존 DB에 등록되어 있습니다.")
+            return models.Media.objects.filter(domain=domain)
+        else: 
+            try:                
+                # 1. news paperdml build를 사용한 방식. 너무 느림.
+                '''
+                media_ojb = newspaper.build(f'http://{domain[2]}')
+                print(media_ojb)
+                media_name = media_ojb.brand                
+                '''
+                # 2. 그냥 타이틀 tag 가져오는 방식
+                request = requests.get(f"http://{domain[2]}", allow_redirects=True,timeout=5, headers=headers, verify=False)                
+                request.encoding = request.apparent_encoding
+                soup = bs4.BeautifulSoup(request.text, 'html.parser')
+                media_name = soup.find("head").find("title").string
+            except:
+                media = models.Media(domain=domain[2], media_name=domain)
+                print("    도메인 : brand 가져오기 실패",media)
+                return media
+            else :                
+                media = models.Media(domain=domain[2], media_name=media_name)
+                print("    도메인 : 신규 도메인", media )
+                return media
+
+
+def scrap(link):
+    headers =  {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36'        
+        }
+    media = extract_media(link, headers)
+    return media
+
+    
+
+
+def make_article(word,news):    
+    # text, media = scrap(news['originallink'])   
+    media = scrap(news['originallink'])   
     return ""
 
 
@@ -84,6 +131,6 @@ def init():
                     models.News.objects.get(link=news['originallink']).cat.add(add_key)
                 else:
                     print(" 신규 기사입니다. 기사를 스크랩합니다.")
-                    scrap_news(word,news)
+                    make_article(word,news)
 
 
