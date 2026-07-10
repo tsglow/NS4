@@ -8,14 +8,18 @@ def extract_media(link, headers):
     domain = link.split('/')
     if len(domain) < 2:
         print("   도메인 : 추출 에러. 잘못된 링크입니다.")
-        domain = "http://unknown"
-        media_name = "Unknown"        
-        media = models.Media(domain=domain, media_name=media_name)
-        return media
+        if models.Media.objects.filter(domain="unknown").exists():        
+            media = models.Media(domain=domain, media_name=media_name)
+            return media
+        else:
+            media = models.Media(domain = "unknown",media_name = "Unknown")
+            media.save()
+            return media                    
     else:
         if models.Media.objects.filter(domain=domain[2]).exists():
-            print("   도메인 : 기존 DB에 등록되어 있습니다.")
-            return models.Media.objects.filter(domain=domain)
+            print("   도메인 : 기존 DB에 등록되어 있습니다.", domain)
+            media = models.Media.objects.get(domain=domain[2])
+            return media
         else: 
             try:                
                 # 1. news paperdml build를 사용한 방식. 너무 느림.
@@ -33,10 +37,12 @@ def extract_media(link, headers):
             except:
                 media = models.Media(domain=domain[2], media_name=domain)
                 print("   도메인 : brand 가져오기 실패",media)
+                media.save()
                 return media
             else :                
                 media = models.Media(domain=domain[2], media_name=media_name)
                 print("   도메인 : 신규 도메인입니다. /", media )
+                media.save()
                 return media
 
 def extract_text(link, headers):
@@ -54,8 +60,7 @@ def make_article(word,news):
     }
     text_str = extract_text(news['originallink'], headers)
     cat_obj = models.Keywords.objects.get(keyword=word)
-    media_obj = extract_media(news['originallink'], headers)
-               
+    media_obj = extract_media(news['originallink'], headers)               
     article_obj = models.News(
         title = news.get('title'),
         description = news.get('description'),
@@ -63,8 +68,7 @@ def make_article(word,news):
         link = news.get('originallink'),
         text = text_str,
         media = media_obj
-    )
-    media_obj.save()
+    )    
     article_obj.save()
     article_obj.cat.add(cat_obj)    
 
