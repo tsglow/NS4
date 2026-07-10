@@ -1,8 +1,8 @@
-# Newsscrapper
+# News scrapper
 
 - 프레임워크 : django 5.2
 
-- DB: postgres 18
+- DB: postgres 18.4
 
 - 뉴스 검색 API : 네이버news api
 
@@ -58,13 +58,13 @@
 
 ### 3. DB 설치
 
-- compose.yaml 파일을 djanogo 프로젝트와는 별도의 폴더를 만들어 이동
+- compose.yaml, .env_ns4_db 파일을 djanogo 프로젝트와는 별도의 폴더를 만들어 이동
 
--  해당 경로로 이동하여 mkdir secrets
+- 해당 경로로 이동하여 mkdir secrets
 
 - db_password.txt, db_user.txt 파일 생성 후 내용 작성
 
--  docker compose up
+- docker compose up
 
 - 4432 포트가 리슨상태인지 확인
 
@@ -92,7 +92,7 @@
 
 - 서비스 기동
 
--  venv> python3 manage.py runserver 0.0.0.0:<원하는 포트>
+- venv> python3 manage.py runserver 0.0.0.0:<원하는 포트>
 
 - 웹브라우저에서 admin 페이지 접속
 

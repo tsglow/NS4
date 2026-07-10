@@ -1,6 +1,7 @@
 import newspaper, datetime, requests
 from django.apps import apps
 from django.conf import settings
+from . import models
 
 def get_model_data(modelname): 
     target = apps.get_model('scrapper', modelname)
@@ -49,7 +50,7 @@ def get_news(word,start_time,w_day):
     else:
         news_list = news_request.json()["items"]
         for news in news_list:
-            print(news['pubDate'])
+            # print(news['pubDate'])
             dayDiff = (start_time - convert_news_pubDate_to_date(news['pubDate'])).days
             if w_day == 0 and dayDiff < 3:
                 sorted_news_list.append(news)
@@ -61,6 +62,10 @@ def get_news(word,start_time,w_day):
     return sorted_news_list
             
 
+def scrap_news(word,news):
+    return ""
+
+
 
 
 def init():
@@ -68,4 +73,17 @@ def init():
     start_time, w_day = get_time_day()
     for word in keywords:
         news_list = get_news(word,start_time,w_day)
+        if len(news_list) < 1:
+            print(f"{word}로 검색된 기사가 없습니다")
+            pass
+        else:
+            for news in news_list:
+                if models.News.objects.filter(link=news['originallink']).exists():
+                    print("중복 기사입니다. 키워드만 추가합니다.")
+                    add_key = models.Keywords.objects.get(keyword=word)
+                    models.News.objects.get(link=news['originallink']).cat.add(add_key)
+                else:
+                    print("신규 기사입니다. 기사를 스크랩합니다.")
+                    scrap_news(word,news)
+
 
