@@ -83,8 +83,8 @@ def extract_media(link, headers):
                 media_name = media_ojb.brand                
                 '''
                 # 2. 그냥 타이틀 tag 가져오는 방식
-                request = requests.get(f"http://{domain[2]}", allow_redirects=True,timeout=5, headers=headers, verify=False)                
-                request.encoding = request.apparent_encoding
+                request = requests.get(f"https://{domain[2]}", allow_redirects=True,timeout=5, headers=headers, verify=False)                
+                request.encoding = 'utf-8'
                 soup = bs4.BeautifulSoup(request.text, 'html.parser')
                 media_name = soup.find("head").find("title").string
             except:
