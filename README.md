@@ -10,9 +10,9 @@
 
 
 
-# 사용법
+## 사용법
 
-0. 사전 준비 사항
+### 사전 준비 사항
 
 - 네이버 뉴스 API를 사용해 기사를 검색하므로 해당 API ID / PW가 필요하다. https://developers.naver.com/docs/serviceapi/search/news/news.md 를 참고하여 ID / PW를 발급한다.
 
@@ -20,7 +20,7 @@
 - python3 버전이 3.12 미만이라면 업데이트한다.
 
 
-1. git과 docker 설치(Rockylinux 10 기준)
+### 1. git과 docker 설치(Rockylinux 10 기준)
 
 - sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 
@@ -38,7 +38,7 @@
 
 
 
-2. venv 생성 및 리파지토리 클론, 의존성 패키지 설치
+### 2. venv 생성 및 리파지토리 클론, 의존성 패키지 설치
 
 - mkdir <원하는 폴더명>
 
@@ -56,7 +56,7 @@
 
 
 
-3. DB 설치
+### 3. DB 설치
 
 - compose.yaml 파일을 djanogo 프로젝트와는 별도의 폴더를 만들어 이동
 
@@ -70,7 +70,7 @@
 
 
 
-4. django env, secret 설정 
+### 4. django env, secret 설정 
 
 - .env_sample 을 .env로 리네이밍 후 해당 파일을 열어 필요한 값 입력
 
@@ -78,7 +78,7 @@
 
 
 
-5. migration 및 기동
+### 5. migration 및 기동
 
 - ns4 프로젝트 폴더로 이동 후 마이그레이션 진행
 
