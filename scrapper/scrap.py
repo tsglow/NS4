@@ -57,7 +57,7 @@ def get_news(word,start_time,w_day):
                 sorted_news_list.append(news)
             else:
                 pass
-    print(sorted_news_list)
+    # print(sorted_news_list)
     return sorted_news_list
             
 
