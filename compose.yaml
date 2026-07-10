@@ -1,0 +1,31 @@
+networks:
+  ns4:
+    name: ns4
+
+services:
+  ns4db:
+    image: postgres:18.4
+    container_name: ns4_db
+    restart: always
+    env_file:
+      - .env_ns4_db
+    environment:
+      - POSTGRES_USER_FILE=/run/secrets/db_user
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_password
+    secrets:
+      - db_user
+      - db_password
+    command: postgres -c password_encryption=scram-sha-256
+    networks:
+      - ns4
+    volumes:
+      - ./ns4_db:/var/lib/postgresql
+    ports:
+      - "0.0.0.0:4432:5432"
+
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  db_user:
+    file: ./secrets/db_user.txt
