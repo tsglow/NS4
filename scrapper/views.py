@@ -1,11 +1,13 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from scrapper.scrap import init
+from . import scrap
+from . import models
 # Create your views here.
 
 def index(request):
-    return render(request, 'scrapper/index.html')
+    latest = {"latest": scrap.convert_date_to_string(models.News.objects.all().order_by('-pubDate')[0].pubDate)}
+    return render(request, 'scrapper/index.html', latest)
 
 def get_data(reqeust):
-    articles = {'article': init()}
+    articles = {'article': scrap.init()}
     return JsonResponse(articles)

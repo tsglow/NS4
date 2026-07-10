@@ -54,6 +54,8 @@
 
 - venv> pip install -r requirements.txt
 
+- venv 상태에서 python shell 실행 후 import nltk  하고 nltk.download('punkt_tab') 실행
+
 
 
 ### 3. DB 설치
