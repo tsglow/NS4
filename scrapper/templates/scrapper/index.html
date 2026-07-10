@@ -21,8 +21,11 @@
     </h1>
     <div id="latest">
       <center>
-        <h3> 마지막으로 기사를 스크랩한 시각은 {{ latest }} 입니다.</h3>
-        <h3> 기사를 추가로 스크랩할까요? Y / N</h3>
+        {% if latest == "none" %}
+          <h3> 스크랩한 기사가 없습니다.</h3>
+        {% else %}
+          <h3> 마지막으로 기사를 스크랩한 시각은 {{ latest }} 입니다.</h3>          
+        {% endif %}        
       </center>
       </div>
     <!--

@@ -141,7 +141,7 @@ def load_news(start_time,w_day):
     scrappped_news = []
     news_pubDate_range = 3 if w_day == 0 else 2
     end_time = datetime.timedelta(days=news_pubDate_range)
-    picked_news = models.News.objects.filter(pubDate__range=(start_time - end_time,start_time)).order_by('pubDate')
+    picked_news = models.News.objects.filter(pubDate__range=(start_time - end_time,start_time)).order_by('-pubDate')
     for news in picked_news:
         strValue_news = {
             'title': news.title,
