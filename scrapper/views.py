@@ -4,16 +4,11 @@ from . import scrap
 from . import models
 # Create your views here.
 
-def index(request):    
-    articles = {             
-        'article': scrap.load_news(),        
-    }
-    return render(request, 'scrapper/index.html', articles)
+def index(request):        
+    return render(request, 'scrapper/index.html', {'articles': scrap.load_news()})
 
-def scrap_news(reqeust):
-    # 이 함수는 일단 index가 로딩된 후에 수동으로만 실행되니까 latest count 체크는 필요 없음
-    articles = { 
-        # 단 기사가 스크랩 된 후에 latest를 검색하게 해야함
+def scrap_news(reqeust):    
+    articles = {         
         'article': scrap.init_manual()        
     }
     return JsonResponse(articles)

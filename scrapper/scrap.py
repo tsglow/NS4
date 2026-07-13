@@ -239,8 +239,7 @@ def load_news():
     end_time = datetime.timedelta(days=news_pubDate_range)    
     try:
         # 지정한 범위의 기사를 pubdate 기준으로 정렬하여 가져오기        
-        picked_news = models.News.objects.filter(pubDate__range=(start_time - end_time,start_time)).order_by('-pubDate')
-        print("moo1")
+        picked_news = models.News.objects.filter(pubDate__range=(start_time - end_time,start_time)).order_by('-pubDate')        
     except:        
         # 기사가 없어서 order 에러가 나는 경우
         nothing_new = {
@@ -252,8 +251,7 @@ def load_news():
             'link': 'https://pipboy.mooo.com/git/dinner_rolls/NSProject',
             'media': '시스템 메세지'
             }
-        scrapped_news.append(nothing_new)
-        print("moo2")
+        scrapped_news.append(nothing_new)        
     else:
     # 가져온 기사를 json 반환하기 위해 value를 모두 string으로 변환        
         for news in picked_news:           
@@ -268,5 +266,4 @@ def load_news():
             }
             # 변환한 객체를 scrapped_news에 추가
             scrapped_news.append(strValue_news)   
-            print("moo3")          
     return scrapped_news
