@@ -151,6 +151,7 @@ USE_TZ = True
 
 STATIC_URL = 'static4/'
 STATIC_ROOT = '/web/webroot/static_ns4'
+DATA_DIR = os.path.join(BASE_DIR, 'data')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

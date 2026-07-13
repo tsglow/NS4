@@ -54,7 +54,7 @@
 
 - venv> pip install -r requirements.txt
 
-- venv 상태에서 python shell 실행 후 import nltk  하고 nltk.download('punkt_tab') 실행
+- venv 상태에서 python shell 실행 후 import nltk  하고 nltk.download('punkt_tab') 실행. /home/로그인한유저명/ 경로에 nltk_data 폴더가 생성되는제 지워지지 않도록 관리할 것
 
 
 

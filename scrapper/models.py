@@ -3,7 +3,8 @@ from django.db import models
 # Create your models here.
 class Media(models.Model):
     media_name = models.CharField(max_length=200)
-    domain = models.URLField(unique=True)
+    domain = models.CharField(unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def display_url(self):
         return f"{self.media_name} : {self.domain}"
