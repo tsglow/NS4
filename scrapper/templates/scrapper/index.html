@@ -18,16 +18,7 @@
   <header>
     <h1>
       <a href="/">Security News Scrapper</a>
-    </h1>
-    <div id="latest">
-      <center>
-        {% if latest == "none" %}
-          <h3> 스크랩한 기사가 없습니다.</h3>
-        {% else %}
-          <h3> 가장 최신 기사의 등록 시간은 {{ latest }} 입니다.</h3>          
-        {% endif %}        
-      </center>
-      </div>
+    </h1>    
     <!--
     <h4> 현재 KISA 인터넷 침해사고 경보단계 : <font color="#cc0101"><b>{{t_info}}</b></font> </h4>     -->
     <!--<h3>{{count}}개 기사를 수집하였습니다. </h3>-->
@@ -44,7 +35,7 @@
       document.addEventListener("DOMContentLoaded", function(){
         const loadDiv = document.getElementById('loader');
         const contentDiv = document.getElementById('content');        
-        fetch('get-data/')          
+        fetch('scrap-news/')          
           .then(response => {            
             //console.log(response.data.article)
             return response.json()})

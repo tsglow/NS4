@@ -61,7 +61,7 @@ def extract_text(link, headers):
     try:
         article = newspaper.article(link, headers=headers, verify=False)
         '''
-        이전 사용하던 방식
+        newspaper3k에서 사용하던 방식
         article = newspaper.Article(link, language='ko', headers=headers, verify=False)
         article.download()
         article.parse()
@@ -182,45 +182,10 @@ def get_model_column_data_to_list(modelname, column):
     # 재사용 가능하게 만들어놓긴 했지만 Keywords 모델 외에는 사용하지 않는 것이 좋을듯
     return list(target.objects.all().values_list(column, flat=True))
 
+
 def convert_date_to_string(time):
     # date 객체를 2026-07-23 09:30:22 형태의 스트링으로 변환
     return time.strftime('%Y-%m-%d %H:%M:%S')
-
-def load_news(start_time,w_day):
-    scrapped_news = []
-    # 가져올 기사 범위. 월요일이면 3일분 그 외는 2일분
-    news_pubDate_range = 3 if w_day == 0 else 2    
-    end_time = datetime.timedelta(days=news_pubDate_range)    
-    try:
-        # 지정한 범위의 기사를 pubdate 기준으로 정렬하여 가져오기        
-        picked_news = models.News.objects.filter(pubDate__range=(start_time - end_time,start_time)).order_by('-pubDate')
-    except:        
-        # 기사가 없어서 order 에러가 나는 경우
-        nothing_new = {
-            'title': '검색된 기사가 없습니다.',
-            'description': '다음 내용을 확인하여 주십시오.',
-            'text': '1. 설정된 검색어가 너무 적은 경우 실제로 관련 기사가 없을 수 있습니다. 뉴스 포탈사이트에서 지난 2~3일간의 기사를 직접 검색해 보십시오. 2. 해당 키워드로 기사가 검색되는 경우, django의 로그를 확인하여 주십시오.',
-            'pubDate': convert_date_to_string(start_time),
-            'cat': '기타',
-            'link': 'https://pipboy.mooo.com/git/dinner_rolls/NSProject',
-            'media': '시스템 메세지'
-            }
-        scrapped_news.append(nothing_new)
-    else:
-    # 가져온 기사를 json 반환하기 위해 value를 모두 string으로 변환        
-        for news in picked_news:           
-            strValue_news = {
-                'title': news.title,
-                'description': news.description,
-                'text': news.text,
-                'pubDate': convert_date_to_string(news.pubDate),
-                'cat': ', '.join(news.cat.all().values_list('keyword', flat=True)),
-                'link': news.link,
-                'media': news.media.media_name
-            }
-            # 변환한 객체를 scrapped_news에 추가
-            scrapped_news.append(strValue_news)             
-    return scrapped_news
 
 
 def get_time_day():
@@ -235,38 +200,73 @@ def get_time_day():
     return start_time, w_day  
 
 
-def init():
-    # 스크랩 시작 시간, 요일 구분
-    start_time, w_day = get_time_day()
-    is_today_scrapped = models.News.objects.filter(pubDate__date=datetime.date.today()).count()
-    
-    # 오늘 스크랩한적이 없으면
-    if is_today_scrapped == 0 :
-        print("최신 기사를 스크랩합니다.")
-        
-        # 검색어를 list로 가져오기
-        keywords = get_model_column_data_to_list('Keywords', 'keyword') 
-        
-        # 각 검색에 대해
-        for word in keywords:
-            # 네이버 뉴스 api 로 기사를 검색하고
-            news_list = get_news_list(word,start_time,w_day)
+# 스캐줄러에 의해 작동할 경우
+def init_auto():    
 
-            if len(news_list) == 0:
-                print(f'{word}로 검색된 뉴스가 없습니다.')
-                pass
-            else : 
-                # 중복 기사를 제거하고 기사 본문을 스크랩해 DB에 저장
-                handle_news_list(news_list, word)            
+    # 스크랩 시작 시간, 요일 구분
+    start_time, w_day = get_time_day()    
+
+    # Keyword를 DB에서 불러와 list로 저장
+    keywords = get_model_column_data_to_list('Keywords', 'keyword') 
         
-        # DB에서 저장된 뉴스를 json 형식으로 로드하여 반환
-        scrapped_news = load_news(start_time, w_day)                   
-        return scrapped_news
-    else: 
-        print("DB에서 기사를 불러옵니다")
-        scrapped_news = load_news(start_time, w_day)
-        return scrapped_news
+    # 각 검색에 대해
+    for word in keywords:
+        # 네이버 뉴스 api 로 기사를 검색하고
+        news_list = get_news_list(word,start_time,w_day)
+
+        # 검색된 기사가 없으면 스킵
+        if len(news_list) == 0:
+            print(f'{word}로 검색된 뉴스가 없습니다.')
+            pass
+        else : 
+            # 기사가 검색되면 중복 기사를 제거하고 기사 본문을 스크랩해 DB에 저장
+            handle_news_list(news_list, word)
+
+
+# 사용자가 기사 검색 버튼을 누르는 경우
+def init_manual():
+    # 스크랩하고
+    init_auto()
+    # load_news 호출해서 결과 리턴
+    return load_news()
+
         
-        
-        
-    
+def load_news():
+    start_time, w_day = get_time_day()
+    scrapped_news = []
+    # 가져올 기사 범위. 월요일이면 3일분 그 외는 2일분
+    news_pubDate_range = 3 if w_day == 0 else 2    
+    end_time = datetime.timedelta(days=news_pubDate_range)    
+    try:
+        # 지정한 범위의 기사를 pubdate 기준으로 정렬하여 가져오기        
+        picked_news = models.News.objects.filter(pubDate__range=(start_time - end_time,start_time)).order_by('-pubDate')
+        print("moo1")
+    except:        
+        # 기사가 없어서 order 에러가 나는 경우
+        nothing_new = {
+            'title': '검색된 기사가 없습니다.',
+            'description': '다음 내용을 확인하여 주십시오.',
+            'text': '1. 설정된 검색어가 너무 적은 경우 실제로 관련 기사가 없을 수 있습니다. 뉴스 포탈사이트에서 지난 2~3일간의 기사를 직접 검색해 보십시오. 2. 해당 키워드로 기사가 검색되는 경우, django의 로그를 확인하여 주십시오.',
+            'pubDate': convert_date_to_string(start_time),
+            'cat': '기타',
+            'link': 'https://pipboy.mooo.com/git/dinner_rolls/NSProject',
+            'media': '시스템 메세지'
+            }
+        scrapped_news.append(nothing_new)
+        print("moo2")
+    else:
+    # 가져온 기사를 json 반환하기 위해 value를 모두 string으로 변환        
+        for news in picked_news:           
+            strValue_news = {
+                'title': news.title,
+                'description': news.description,
+                'text': news.text,
+                'pubDate': convert_date_to_string(news.pubDate),
+                'cat': ', '.join(news.cat.all().values_list('keyword', flat=True)),
+                'link': news.link,
+                'media': news.media.media_name
+            }
+            # 변환한 객체를 scrapped_news에 추가
+            scrapped_news.append(strValue_news)   
+            print("moo3")          
+    return scrapped_news
