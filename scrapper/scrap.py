@@ -6,19 +6,25 @@ from . import models
 # init()에서 호출되는 함수를 bottom to top 순으로 작성
 
 def extract_media(link, headers):
+    # 일단 url을 / 기준으로 잘라서 리스트로 만들고
     domain = link.split('/')
     if len(domain) < 2:
+        # 그런데 리스트 길이가 2미만이면 기사에 링크를 잘못 입력한 것이므로 예외처리
         print("   도메인 : 추출 에러. 잘못된 링크입니다.")
-        if models.Media.objects.filter(domain="unknown").exists():        
+        if models.Media.objects.filter(domain="unknown").exists():
+            # unknown 개체가 있으면 해당 내용 반환
             media = models.Media(domain=domain, media_name=media_name)
             return media
         else:
+            # unknown 개체가 없으면 생성 후 반환
             media = models.Media(domain = "unknown",media_name = "Unknown")
             media.save()
             return media                    
     else:
+        # 정상적으로 도메인 추출이 되었는데 이미 있는 도메인이면 
         if models.Media.objects.filter(domain=domain[2]).exists():
             print("   도메인 : 기존 DB에 등록되어 있습니다.", domain[2])
+            #등록된 도메인 정보를 반환
             media = models.Media.objects.get(domain=domain[2])
             return media
         else: 
@@ -29,39 +35,61 @@ def extract_media(link, headers):
                 print(media_ojb)
                 media_name = media_ojb.brand                
                 '''
-                # 2. 그냥 타이틀 tag 가져오는 방식                
+                # 2. 그냥 html > head 의 title tag 가져오는 방식                
                 request = requests.get(f"https://{domain[2]}", allow_redirects=True,timeout=5, headers=headers, verify=False)                
-                # request.encoding = request.apparent_encoding 오히려 에러가 발생
+                # request.encoding = request.apparent_encoding 을 썼는데 오히려 인코딩 깨지는 문제가 발생해서 utf-8로
                 request.encoding = 'utf-8'
+                # bs4 로 html parsing해서 title 태그 내용을 media_name으로 저장
                 soup = bs4.BeautifulSoup(request.text, 'html.parser')
                 media_name = soup.find("head").find("title").string
             except:
+                # 위의 과정 중 에러나면 그냥 domain 주소만 가지고 객체 만들어서 저장 후 반환
                 media = models.Media(domain=domain[2], media_name=domain)
                 print("   도메인 : brand 가져오기 실패",media)
                 media.save()
                 return media
-            else :                
+            else :
+                # 성공하면 해당 내용으로 객체 만들어 저장하고 반환
                 media = models.Media(domain=domain[2], media_name=media_name)
                 print("   도메인 : 신규 도메인입니다. /", media )
                 media.save()
                 return media
 
+
 def extract_text(link, headers):
+    # newspaper4k로 본문 가져오기
     try:
-        article = newspaper.article(link, headers=headers, verify=False)    
+        article = newspaper.article(link, headers=headers, verify=False)
+        '''
+        이전 사용하던 방식
+        article = newspaper.Article(link, language='ko', headers=headers, verify=False)
+        article.download()
+        article.parse()
+        '''
     except:
         article.text = "기사 본문을 스크랩하지 못했습니다"        
     return article.text
 
 
 def make_article(word,news):
-    urllib3.disable_warnings()    
+    # Insecure Request 방지용
+    urllib3.disable_warnings()
+
+    # newpaper4k와 bs4에서 사용할 헤더
     headers =  {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36'        
     }
+    
+    # newspaper4k로 텍스트 추출
     text_str = extract_text(news['originallink'], headers)
+
+    # Keywords 모델 오브젝트 생성
     cat_obj = models.Keywords.objects.get(keyword=word)
-    media_obj = extract_media(news['originallink'], headers)               
+
+    # bs4로 뉴스 미디어 이름을 Media 모델 오브젝트로 저장 후 오브젝트로 가져오기
+    media_obj = extract_media(news['originallink'], headers)
+
+    # 각 내용들을 가지고 News 오브젝트 생성               
     article_obj = models.News(
         title = news.get('title'),
         description = news.get('description'),
@@ -69,29 +97,32 @@ def make_article(word,news):
         link = news.get('originallink'),
         text = text_str,
         media = media_obj
-    )    
+    )
+
+    # 오브젝트 저장
     article_obj.save()
+
+    # 검색어 오브젝트는 다대다 관계이기 때문에 위의 오브젝트를 저장한 후에 add로 추가해줌    
     article_obj.cat.add(cat_obj)    
 
 
 def handle_news_list(news_list, word):
-    if len(news_list) < 1:
-        print(f"{word}로 검색된 기사가 없습니다")
-        pass
-    else:
-        for news in news_list:
-            if models.News.objects.filter(link=news['originallink']).exists():
-                print("  중복 기사입니다. 키워드만 추가합니다.")
-                add_key = models.Keywords.objects.get(keyword=word)
-                models.News.objects.get(link=news['originallink']).cat.add(add_key)
-            else:
-                print("  신규 기사입니다. 기사를 스크랩합니다.")
-                make_article(word,news)
+    for news in news_list:
+        if models.News.objects.filter(link=news['originallink']).exists():
+            print("  이미 스크랩된 기사입니다. 검색 키워드만 추가합니다.")
+            add_key = models.Keywords.objects.get(keyword=word)
+            models.News.objects.get(link=news['originallink']).cat.add(add_key)
+        else:
+            print("  신규 기사입니다. 기사를 스크랩합니다.")
+            make_article(word,news)
 
 
 def convert_news_pubDate_to_date(time):
+    # naive 한 date 객체 경고를 없애기 위해 tz 설정
     tz = datetime.timezone(datetime.timedelta(hours=9))
+    # 네이버 뉴스의 pubDate 스트링을 datetime 객체로 변환
     converted_naive = datetime.datetime.strptime(time,'%a, %d %b %Y %H:%M:%S +0900')
+    # tz 정보 교체해서 반환
     return converted_naive.replace(tzinfo=tz)
 
 
@@ -127,13 +158,16 @@ def get_news_list(word,start_time,w_day):
         print(f' {word} 기사 검색 에러')
         return news_list
     else:
+        # API 결과를 json 으로 바꾸고
         news_list = news_request.json()["items"]
+
+        # 월요일이면 72시간, 그외엔 48시간 내의 기사만 리스트에 추가
         for news in news_list:
             # print(news['pubDate'])
             dayDiff = (start_time - convert_news_pubDate_to_date(news['pubDate'])).days
             if w_day == 0 and dayDiff < 3:
                 sorted_news_list.append(news)
-            elif w_day != 0 and dayDiff <= 1:            
+            elif w_day != 0 and dayDiff < 2:            
                 sorted_news_list.append(news)
             else:
                 pass
