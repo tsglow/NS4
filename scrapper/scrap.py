@@ -3,6 +3,7 @@ from django.apps import apps
 from django.conf import settings
 from . import models
 
+# init()에서 호출되는 함수를 bottom to top 순으로 작성
 
 def extract_media(link, headers):
     domain = link.split('/')
@@ -17,7 +18,7 @@ def extract_media(link, headers):
             return media                    
     else:
         if models.Media.objects.filter(domain=domain[2]).exists():
-            print("   도메인 : 기존 DB에 등록되어 있습니다.", domain)
+            print("   도메인 : 기존 DB에 등록되어 있습니다.", domain[2])
             media = models.Media.objects.get(domain=domain[2])
             return media
         else: 
@@ -96,9 +97,11 @@ def convert_news_pubDate_to_date(time):
 
 def get_news_list(word,start_time,w_day):
     sorted_news_list = []
+
+    # 네이버 API 호출을 위한 URL에서 사용할 파라메터들. 상새는 https://developers.naver.com/docs/serviceapi/search/news/news.md#%ED%8C%8C%EB%9D%BC%EB%AF%B8%ED%84%B0 참고
     na_id = settings.NA_ID
     na_psd = settings.NA_PWD
-    encode_type = 'json'
+    encode_type = 'json'        
     max_display = 10
     sort = 'sim'
     start = 1
@@ -116,9 +119,11 @@ def get_news_list(word,start_time,w_day):
     'X-Naver-Client-Secret': na_psd}
     '''    
     try:
+        # 네이버 뉴스 API를 호출
         print(f' {word} 기사 검색중')
         news_request = requests.get(url, headers=headers)
     except:
+        # 에러 발생시 빈 리스트를 반환
         print(f' {word} 기사 검색 에러')
         return news_list
     else:
@@ -136,55 +141,98 @@ def get_news_list(word,start_time,w_day):
     return sorted_news_list
 
 
-def get_model_data(modelname): 
+def get_model_column_data_to_list(modelname, column): 
+    # 데이터를 가져올 모델 지정    
     target = apps.get_model('scrapper', modelname)
-    return list(target.objects.all().values_list('keyword', flat=True))
+    # 해당 모델의 지정 컬럼의 모든 데이터를 list로 변환하여 반환
+    # 재사용 가능하게 만들어놓긴 했지만 Keywords 모델 외에는 사용하지 않는 것이 좋을듯
+    return list(target.objects.all().values_list(column, flat=True))
 
 def convert_date_to_string(time):
+    # date 객체를 2026-07-23 09:30:22 형태의 스트링으로 변환
     return time.strftime('%Y-%m-%d %H:%M:%S')
 
 def load_news(start_time,w_day):
-    scrappped_news = []
-    news_pubDate_range = 3 if w_day == 0 else 2
-    end_time = datetime.timedelta(days=news_pubDate_range)
-    picked_news = models.News.objects.filter(pubDate__range=(start_time - end_time,start_time)).order_by('-pubDate')
-    for news in picked_news:
-        strValue_news = {
-            'title': news.title,
-            'description': news.description,
-            'text': news.text,
-            'pubDate': convert_date_to_string(news.pubDate),
-            'cat': ', '.join(news.cat.all().values_list('keyword', flat=True)),
-            'link': news.link,
-            'media': news.media.media_name
-        }
-        scrappped_news.append(strValue_news)
-    return scrappped_news
+    scrapped_news = []
+    # 가져올 기사 범위. 월요일이면 3일분 그 외는 2일분
+    news_pubDate_range = 3 if w_day == 0 else 2    
+    end_time = datetime.timedelta(days=news_pubDate_range)    
+    try:
+        # 지정한 범위의 기사를 pubdate 기준으로 정렬하여 가져오기        
+        picked_news = models.News.objects.filter(pubDate__range=(start_time - end_time,start_time)).order_by('-pubDate')
+    except:        
+        # 기사가 없어서 order 에러가 나는 경우
+        nothing_new = {
+            'title': '검색된 기사가 없습니다.',
+            'description': '다음 내용을 확인하여 주십시오.',
+            'text': '1. 설정된 검색어가 너무 적은 경우 실제로 관련 기사가 없을 수 있습니다. 뉴스 포탈사이트에서 지난 2~3일간의 기사를 직접 검색해 보십시오. 2. 해당 키워드로 기사가 검색되는 경우, django의 로그를 확인하여 주십시오.',
+            'pubDate': convert_date_to_string(start_time),
+            'cat': '기타',
+            'link': 'https://pipboy.mooo.com/git/dinner_rolls/NSProject',
+            'media': '시스템 메세지'
+            }
+        scrapped_news.append(nothing_new)
+    else:
+    # 가져온 기사를 json 반환하기 위해 value를 모두 string으로 변환        
+        for news in picked_news:           
+            strValue_news = {
+                'title': news.title,
+                'description': news.description,
+                'text': news.text,
+                'pubDate': convert_date_to_string(news.pubDate),
+                'cat': ', '.join(news.cat.all().values_list('keyword', flat=True)),
+                'link': news.link,
+                'media': news.media.media_name
+            }
+            # 변환한 객체를 scrapped_news에 추가
+            scrapped_news.append(strValue_news)             
+    return scrapped_news
 
 
 def get_time_day():
+    # naive 한 date 객체 경고를 없애기 위해 tz 설정
     tz = datetime.timezone(datetime.timedelta(hours=9))
+    
+    # 스크랩 시작 시간 저장
     start_time = datetime.datetime.now(tz=tz)    
+
+    # 오늘의 요일 저장
     w_day = start_time.weekday()
     return start_time, w_day  
 
 
 def init():
+    # 스크랩 시작 시간, 요일 구분
     start_time, w_day = get_time_day()
     is_today_scrapped = models.News.objects.filter(pubDate__date=datetime.date.today()).count()
     
-    if is_today_scrapped > 0 :
-        print("DB에서 기사를 불러옵니다")       
-        scrapped_news = load_news(start_time, w_day)
+    # 오늘 스크랩한적이 없으면
+    if is_today_scrapped == 0 :
+        print("최신 기사를 스크랩합니다.")
+        
+        # 검색어를 list로 가져오기
+        keywords = get_model_column_data_to_list('Keywords', 'keyword') 
+        
+        # 각 검색에 대해
+        for word in keywords:
+            # 네이버 뉴스 api 로 기사를 검색하고
+            news_list = get_news_list(word,start_time,w_day)
+
+            if len(news_list) == 0:
+                print(f'{word}로 검색된 뉴스가 없습니다.')
+                pass
+            else : 
+                # 중복 기사를 제거하고 기사 본문을 스크랩해 DB에 저장
+                handle_news_list(news_list, word)            
+        
+        # DB에서 저장된 뉴스를 json 형식으로 로드하여 반환
+        scrapped_news = load_news(start_time, w_day)                   
         return scrapped_news
     else: 
-        print("DB에 기사가 없습니다. 스크랩을 시작합니다.")
-        keywords =  get_model_data('Keywords') 
-        for word in keywords:
-            news_list = get_news_list(word,start_time,w_day)
-            handle_news_list(news_list, word)
+        print("DB에서 기사를 불러옵니다")
         scrapped_news = load_news(start_time, w_day)
         return scrapped_news
+        
         
         
     
