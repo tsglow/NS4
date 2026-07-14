@@ -183,10 +183,9 @@ def get_model_column_data_to_list(modelname, column):
     return list(target.objects.all().values_list(column, flat=True))
 
 
-def convert_date_to_string(time):
+def convert_date_to_string(time, form):
     # date 객체를 2026-07-23 09:30:22 형태의 스트링으로 변환
-    return time.strftime('%Y-%m-%d %H:%M:%S')
-
+    return time.strftime(form)
 
 
 def scrap_now(start_time, w_day):    
@@ -207,20 +206,42 @@ def scrap_now(start_time, w_day):
             handle_news_list(news_list, word)
 
 
-def search_news(keywords, startime, endtime):
+def get_model_obj_from_list(list, appname,modelname, column):    
+    result_list=[]
+    target = apps.get_model(appname, modelname)
+    for item in list:
+        try:
+            obj = target.objects.get(**{column: item})
+            result_list.append(obj)
+        except:
+            pass
+    return result_list
+
+
+def search_news(startime, endtime, category=[]):
+    # 검색 조건 딕셔너리 선언
+    conditions = {}
+
+    # 검색 기간. start_time 이 end_time보다 최근이면 역으로 전환 후 검색 조건에 추가
     start_time = convert_string_to_date(startime,'%Y-%m-%d %H:%M:%S')
     end_time = convert_string_to_date(endtime,'%Y-%m-%d %H:%M:%S')
+    if (start_time - end_time) > datetime.timedelta(0):
+        start_time, end_time = end_time, start_time
+    conditions['pubDate__range'] = (start_time, end_time)
+    print(conditions)
 
-    searching_keywords_obj = []
-    for k in keywords:
-        result = models.Keywords.objects.get(keyword=k)
-        searching_keywords_obj.append(result)
+    # News 모델의 Cat 컬럼은 manytomany이므로 오브젝트를 실제로 불러와서 피교해야함    
+    if len(category) == 0:
+        # 카테고리를 선택하지 않았으면 pass
+        pass
+    else:
+        # 카테고리를 선택했으면 조건에 추가
+        category_obj = get_model_obj_from_list(category,'scrapper',"Keywords", "keyword")
+        conditions['cat__in'] = category_obj
+        print(conditions)
 
-    search_result = models.News.objects.filter(
-        pubDate__range=(end_time, start_time),
-        cat__in=searching_keywords_obj
-    ).distinct()
-
+    # News에서 지정한 기간과 검색어가 포함된 뉴스를 검색해서 역정렬#    
+    search_result = models.News.objects.filter(**conditions).distinct().order_by('-pubDate')       
     return search_result   
 
         
@@ -238,7 +259,7 @@ def load_news(start_time, w_day):
             'title': '검색된 기사가 없습니다.',
             'description': '다음 내용을 확인하여 주십시오.',
             'text': '1. 설정된 검색어가 너무 적은 경우 실제로 관련 기사가 없을 수 있습니다. 뉴스 포탈사이트에서 지난 2~3일간의 기사를 직접 검색해 보십시오. 2. 해당 키워드로 기사가 검색되는 경우, django의 로그를 확인하여 주십시오.',
-            'pubDate': convert_date_to_string(start_time),
+            'pubDate': convert_date_to_string(start_time,'%Y-%m-%d %H:%M:%S'),
             'cat': '기타',
             'link': 'https://pipboy.mooo.com/git/dinner_rolls/NSProject',
             'media': '시스템 메세지'
@@ -251,7 +272,7 @@ def load_news(start_time, w_day):
                 'title': news.title,
                 'description': news.description,
                 'text': news.text,
-                'pubDate': convert_date_to_string(news.pubDate),
+                'pubDate': convert_date_to_string(news.pubDate, '%Y-%m-%d %H:%M:%S'),
                 'cat': ', '.join(news.cat.all().values_list('keyword', flat=True)),
                 'link': news.link,
                 'media': news.media.media_name
