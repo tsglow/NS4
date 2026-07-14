@@ -14,9 +14,14 @@ from pathlib import Path
 import os,json, environ
 from django.core.exceptions import ImproperlyConfigured
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 # for secret
-with open("secrets.json") as f:
+secret_file_path = os.path.join(BASE_DIR, 'secrets.json')
+
+with open(secret_file_path) as f:
     secrets = json.loads(f.read())
 
 def get_secret(setting, secrets=secrets):
@@ -27,14 +32,15 @@ def get_secret(setting, secrets=secrets):
         raise ImproperlyConfigured(error_msg)
 
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
 # for env
 ns4env = environ.Env(
     DEBUG=(bool,False)
 )
 environ.Env.read_env(os.path.join(BASE_DIR,'.env'))
+
+# for logging
+CRON_LOG_PATH = os.path.join(BASE_DIR, 'django_cron.log')
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -57,6 +63,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_crontab',
     'scrapper',
 ]
 
@@ -157,3 +164,9 @@ DATA_DIR = os.path.join(BASE_DIR, 'data')
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# cron jobs using django-crontab
+CRONJOBS = [
+    ('0 7,19 * * *', 'scrapper.cron.scrap_every_12hour', f'>> {CRON_LOG_PATH} 2>&1')
+]
