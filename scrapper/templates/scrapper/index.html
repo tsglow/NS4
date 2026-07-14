@@ -32,7 +32,7 @@
       </center>      
     </div>
     <div id="menuTabs">
-      <div class="menu" id="todayNews">News Today</div>
+      <div class="menu" id="todayNews">News Today (총 {{articles|length}}개의 기사)</div>
       <div class="menu" id="searchNews">News Search</div>
     </div>
     <div id="content">
@@ -51,6 +51,8 @@
         const loadDiv = document.getElementById('loader');
         const contentDiv = document.getElementById('content');
         const menuTabs = document.getElementById('menuTabs');
+        const todayNews = document.getElementById('todayNews');
+        const searchNews = document.getElementById('searchNews')
         // loadDiv는 보여주고 contentDiv는 가리고 내용 삭제함
         loadDiv.style.display = 'block';
         menuTabs.style.display = 'none';
@@ -62,8 +64,8 @@
           .then(response => {            
             // console.log(response.data.article)
             return response.json()})
-          .then(data => {                   
-            const articles = data.article;            
+          .then(data => {            
+            const articles = data.article;                        
             // json 의 article dictionary 안의 data를 html 엘레멘트로 만들어 contentDiv에 append
             articles.forEach(item => {
               const articleDiv = document.createElement('div');
@@ -78,9 +80,10 @@
               contentDiv.appendChild(articleDiv);            
             });
             // loadDiv를 가리고 contentDiv를 표시
+            todayNews.innerText = `News Today (총 ${articles.length}개의 기사)`
             loadDiv.style.display = 'none';
             menuTabs.style.display = 'block';        
-            contentDiv.style.display = 'block';            
+            contentDiv.style.display = 'block';
           })
           .catch(error => console.error('기사 로딩 중 오류 발생:',error));
         });      
