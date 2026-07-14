@@ -9,7 +9,8 @@
   <title>Security News Scrapper</title>
   <style>
     #loader { display: none; }
-    #content { display: block; }
+    #tabs { display: none; }
+    #content { display: block; }    
   </style>
   
 </head>
@@ -30,6 +31,10 @@
         <h3> 기사를 불러오는 중입니다...</h3>
       </center>      
     </div>
+    <div id="menuTabs">
+      <div class="menu" id="todayNews">News Today</div>
+      <div class="menu" id="searchNews">News Search</div>
+    </div>
     <div id="content">
       {% for item in articles %}
         <h3>{{item.cat}} | <a href="{{item.link}}" target="_blank">{{item.title}}</a> - {{item.media}}</h3>
@@ -44,10 +49,12 @@
       scrBtn.addEventListener("click", function(){
         // loadDiv, contentDiv 선언
         const loadDiv = document.getElementById('loader');
-        const contentDiv = document.getElementById('content');                
+        const contentDiv = document.getElementById('content');
+        const menuTabs = document.getElementById('menuTabs');
         // loadDiv는 보여주고 contentDiv는 가리고 내용 삭제함
         loadDiv.style.display = 'block';
-        contentDiv.style.display = 'none';
+        menuTabs.style.display = 'none';
+        contentDiv.style.display = 'none';                
         contentDiv.innerHTML = ''
         
         // django에 scrap-news url로 json 요청
@@ -72,7 +79,8 @@
             });
             // loadDiv를 가리고 contentDiv를 표시
             loadDiv.style.display = 'none';
-            contentDiv.style.display = 'block';
+            menuTabs.style.display = 'block';        
+            contentDiv.style.display = 'block';            
           })
           .catch(error => console.error('기사 로딩 중 오류 발생:',error));
         });      
