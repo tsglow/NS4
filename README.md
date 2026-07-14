@@ -106,3 +106,5 @@
 - http://127.0.0.1:<지정한포트>/scrapper 로 접속하면 기사 수집 후 결과가 출력된다.
 
 - 뉴스 매체의 경우 기존에 수집한 파일을 data/scrapper 경로에 csv로 추가해두었다. python3 manage.py shell 실행 후 from scrapper import load_wrtie 하고 write_media_from_list() 함수 실행으로 DB에 반영 가능하다.
+
+- python3 manage.py cron add 로 CRON_TAB에 설정한 작업을 등록한다.

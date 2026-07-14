@@ -200,12 +200,9 @@ def get_time_day():
     return start_time, w_day  
 
 
-# 스캐줄러에 의해 작동할 경우
-def init_auto():    
 
-    # 스크랩 시작 시간, 요일 구분
-    start_time, w_day = get_time_day()    
 
+def scrap_now(start_time, w_day):    
     # Keyword를 DB에서 불러와 list로 저장
     keywords = get_model_column_data_to_list('Keywords', 'keyword') 
         
@@ -222,17 +219,23 @@ def init_auto():
             # 기사가 검색되면 중복 기사를 제거하고 기사 본문을 스크랩해 DB에 저장
             handle_news_list(news_list, word)
 
+# 스캐줄러에 의해 작동할 경우
+def init_auto():
+    # 스크랩 시작 시간, 요일 구분
+    start_time, w_day = get_time_day()    
+    scrap_now(start_time, w_day)
+
 
 # 사용자가 기사 검색 버튼을 누르는 경우
 def init_manual():
+    start_time, w_day = get_time_day()
     # 스크랩하고
-    init_auto()
+    scrap_now(start_time, w_day)
     # load_news 호출해서 결과 리턴
-    return load_news()
+    return load_news(start_time, w_day)
 
         
-def load_news():
-    start_time, w_day = get_time_day()
+def load_news(start_time, w_day):    
     scrapped_news = []
     # 가져올 기사 범위. 월요일이면 3일분 그 외는 2일분
     news_pubDate_range = 3 if w_day == 0 else 2    
