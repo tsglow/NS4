@@ -72,12 +72,13 @@
 
 
 
-### 4. django env, secret 설정 
+### 4. django env, secret, cron 설정 
 
 - .env_sample 을 .env로 리네이밍 후 해당 파일을 열어 필요한 값 입력
 
 - secrets_sample.json 을 secrets.json으로 리네이밍 후 해당 파일을 열어 필요한 값 입력
 
+- settings.py의 CRON_JOBS 의 설정을 원하는 스케줄로 변경. 기본값은 매일 07시, 19시 스크랩하도록 되어 있음
 
 
 ### 5. migration 및 기동
@@ -103,3 +104,5 @@
 - Keywords 모델을 클릭하여 검색할 키워드 등록
 
 - http://127.0.0.1:<지정한포트>/scrapper 로 접속하면 기사 수집 후 결과가 출력된다.
+
+- 뉴스 매체의 경우 기존에 수집한 파일을 data/scrapper 경로에 csv로 추가해두었다. python3 manage.py shell 실행 후 from scrapper import load_wrtie 하고 write_media_from_list() 함수 실행으로 DB에 반영 가능하다.
