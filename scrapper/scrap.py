@@ -117,11 +117,11 @@ def handle_news_list(news_list, word):
             make_article(word,news)
 
 
-def convert_news_pubDate_to_date(time):
+def convert_string_to_date(string, form):
     # naive 한 date 객체 경고를 없애기 위해 tz 설정
     tz = datetime.timezone(datetime.timedelta(hours=9))
     # 네이버 뉴스의 pubDate 스트링을 datetime 객체로 변환
-    converted_naive = datetime.datetime.strptime(time,'%a, %d %b %Y %H:%M:%S +0900')
+    converted_naive = datetime.datetime.strptime(string,form)
     # tz 정보 교체해서 반환
     return converted_naive.replace(tzinfo=tz)
 
@@ -164,7 +164,7 @@ def get_news_list(word,start_time,w_day):
         # 월요일이면 72시간, 그외엔 48시간 내의 기사만 리스트에 추가
         for news in news_list:
             # print(news['pubDate'])
-            dayDiff = (start_time - convert_news_pubDate_to_date(news['pubDate'])).days
+            dayDiff = (start_time - convert_string_to_date(news['pubDate'],'%a, %d %b %Y %H:%M:%S +0900')).days
             if w_day == 0 and dayDiff < 3:
                 sorted_news_list.append(news)
             elif w_day != 0 and dayDiff < 2:            
@@ -188,19 +188,6 @@ def convert_date_to_string(time):
     return time.strftime('%Y-%m-%d %H:%M:%S')
 
 
-def get_time_day():
-    # naive 한 date 객체 경고를 없애기 위해 tz 설정
-    tz = datetime.timezone(datetime.timedelta(hours=9))
-    
-    # 스크랩 시작 시간 저장
-    start_time = datetime.datetime.now(tz=tz)    
-
-    # 오늘의 요일 저장
-    w_day = start_time.weekday()
-    return start_time, w_day  
-
-
-
 
 def scrap_now(start_time, w_day):    
     # Keyword를 DB에서 불러와 list로 저장
@@ -219,20 +206,22 @@ def scrap_now(start_time, w_day):
             # 기사가 검색되면 중복 기사를 제거하고 기사 본문을 스크랩해 DB에 저장
             handle_news_list(news_list, word)
 
-# 스캐줄러에 의해 작동할 경우
-def init_auto():
-    # 스크랩 시작 시간, 요일 구분
-    start_time, w_day = get_time_day()    
-    scrap_now(start_time, w_day)
 
+def search_news(keywords, startime, endtime):
+    start_time = convert_string_to_date(startime,'%Y-%m-%d %H:%M:%S')
+    end_time = convert_string_to_date(endtime,'%Y-%m-%d %H:%M:%S')
 
-# 사용자가 기사 검색 버튼을 누르는 경우
-def init_manual():
-    start_time, w_day = get_time_day()
-    # 스크랩하고
-    scrap_now(start_time, w_day)
-    # load_news 호출해서 결과 리턴
-    return load_news(start_time, w_day)
+    searching_keywords_obj = []
+    for k in keywords:
+        result = models.Keywords.objects.get(keyword=k)
+        searching_keywords_obj.append(result)
+
+    search_result = models.News.objects.filter(
+        pubDate__range=(end_time, start_time),
+        cat__in=searching_keywords_obj
+    ).distinct()
+
+    return search_result   
 
         
 def load_news(start_time, w_day):    
@@ -270,3 +259,31 @@ def load_news(start_time, w_day):
             # 변환한 객체를 scrapped_news에 추가
             scrapped_news.append(strValue_news)   
     return scrapped_news
+
+
+def get_time_day():
+    # naive 한 date 객체 경고를 없애기 위해 tz 설정
+    tz = datetime.timezone(datetime.timedelta(hours=9))
+    
+    # 스크랩 시작 시간 저장
+    start_time = datetime.datetime.now(tz=tz)    
+
+    # 오늘의 요일 저장
+    w_day = start_time.weekday()
+    return start_time, w_day  
+
+
+# 사용자가 기사 검색 버튼을 누르는 경우
+def init_manual():
+    start_time, w_day = get_time_day()
+    # 스크랩하고
+    scrap_now(start_time, w_day)
+    # load_news 호출해서 결과 리턴
+    return load_news(start_time, w_day)
+
+
+# 스캐줄러에 의해 작동할 경우
+def init_auto():
+    # 스크랩 시작 시간, 요일 구분
+    start_time, w_day = get_time_day()    
+    scrap_now(start_time, w_day)

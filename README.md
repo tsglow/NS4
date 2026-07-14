@@ -68,7 +68,7 @@
 
 - docker compose up
 
-- 4432 포트가 리슨상태인지 확인
+- 4432 포트가 리슨 상태인지 확인
 
 
 
@@ -85,21 +85,21 @@
 
 - ns4 프로젝트 폴더로 이동 후 마이그레이션 진행
 
-- venv> python3 manage.py makemigrations
+venv> python3 manage.py makemigrations
 
-- venv> python3 manage.py migrate
+venv> python3 manage.py migrate
 
 - 슈퍼 유저 생성
 
-- venv> python3 manage.py createsuperuser
+venv> python3 manage.py createsuperuser
 
 - 서비스 기동
 
-- venv> python3 manage.py runserver 0.0.0.0:<원하는 포트>
+venv> python3 manage.py runserver 0.0.0.0:<원하는 포트>
 
 - 웹브라우저에서 admin 페이지 접속
 
-- http://127.0.0.1:<지정한포트>/admin
+http://127.0.0.1:<지정한포트>/admin
 
 - Keywords 모델을 클릭하여 검색할 키워드 등록
 

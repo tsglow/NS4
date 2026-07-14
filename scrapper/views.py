@@ -9,5 +9,6 @@ def index(request):
     return render(request, 'scrapper/index.html', {'articles': scrap.load_news(start_time, w_day)})
 
 def scrap_news(reqeust):    
-    articles = {'article': scrap.init_manual()}
+    articles = {'article': scrap.init_manual()
+    }
     return JsonResponse(articles)
