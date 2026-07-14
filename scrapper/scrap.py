@@ -117,11 +117,14 @@ def handle_news_list(news_list, word):
             make_article(word,news)
 
 
-def convert_string_to_date(string, form):
+def convert_string_to_date(string, form):    
     # naive 한 date 객체 경고를 없애기 위해 tz 설정
     tz = datetime.timezone(datetime.timedelta(hours=9))
     # 네이버 뉴스의 pubDate 스트링을 datetime 객체로 변환
-    converted_naive = datetime.datetime.strptime(string,form)
+    if type(string) == str :
+        converted_naive = datetime.datetime.strptime(string,form)        
+    else :
+        converted_naive = string
     # tz 정보 교체해서 반환
     return converted_naive.replace(tzinfo=tz)
 
@@ -212,21 +215,13 @@ def get_model_obj_from_list(list, appname,modelname, column):
     return result_list
 
 
-def search_news(starttime, endtime, category=[], order=['-pubDate']):
+def search_news(starttime, endtime, category=[], order=['-pubDate'], field="title", word=""):
     # 검색 조건 딕셔너리 선언
     conditions = {}    
 
     # 검색 기간. 입력된 기간이 string이면 datetime 객체로 변환하고, start_time 이 end_time보다 최근이면 역으로 전환 후 검색 조건에 추가    
-    if type(starttime) == str :
-        start_time = convert_string_to_date(starttime,'%Y-%m-%d %H:%M:%S')
-    else: 
-        start_time = starttime
-    
-    if type(endtime) == str :
-        end_time = convert_string_to_date(endtime,'%Y-%m-%d %H:%M:%S')
-    else:
-        end_time = endtime
-        
+    start_time = convert_string_to_date(starttime, '%Y-%m-%d %H:%M:%S')
+    end_time = convert_string_to_date(endtime, '%Y-%m-%d %H:%M:%S')
     if (start_time - end_time) > datetime.timedelta(0):
         start_time, end_time = end_time, start_time
     conditions['pubDate__range'] = (start_time, end_time)    
@@ -239,7 +234,11 @@ def search_news(starttime, endtime, category=[], order=['-pubDate']):
         # 카테고리를 선택했으면 조건에 추가
         category_obj = get_model_obj_from_list(category,'scrapper',"Keywords", "keyword")
         conditions['cat__in'] = category_obj
-
+        
+    # 단어 포함여부 조건
+    if not word == "":
+        conditions[f'{field}__contains'] = word    
+    
     # News에서 지정한 기간과 검색어가 포함된 뉴스를 검색해서 역정렬#    
     search_result = models.News.objects.filter(**conditions).distinct().order_by(*order)
     return search_result
