@@ -93,7 +93,7 @@ def make_article(word,news):
     article_obj = models.News(
         title = news.get('title'),
         description = news.get('description'),
-        pubDate = convert_news_pubDate_to_date(news.get('pubDate')),
+        pubDate = convert_string_to_date(news.get('pubDate'),'%a, %d %b %Y %H:%M:%S +0900'),
         link = news.get('originallink'),
         text = text_str,
         media = media_obj
@@ -142,13 +142,7 @@ def get_news_list(word,start_time,w_day):
         'X-Naver-Client-Id': na_id,
         'X-Naver-Client-Secret': na_psd 
         }    
-    # 이전에 사용하던 헤더
-    '''    
-    headers = {'User-Agent':
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36',
-    'X-Naver-Client-Id': na_id,
-    'X-Naver-Client-Secret': na_psd}
-    '''    
+ 
     try:
         # 네이버 뉴스 API를 호출
         print(f' {word} 기사 검색중')
@@ -218,19 +212,26 @@ def get_model_obj_from_list(list, appname,modelname, column):
     return result_list
 
 
-def search_news(startime, endtime, category=[]):
+def search_news(starttime, endtime, category=[], order=['-pubDate']):
     # 검색 조건 딕셔너리 선언
-    conditions = {}
+    conditions = {}    
 
-    # 검색 기간. start_time 이 end_time보다 최근이면 역으로 전환 후 검색 조건에 추가
-    start_time = convert_string_to_date(startime,'%Y-%m-%d %H:%M:%S')
-    end_time = convert_string_to_date(endtime,'%Y-%m-%d %H:%M:%S')
+    # 검색 기간. 입력된 기간이 string이면 datetime 객체로 변환하고, start_time 이 end_time보다 최근이면 역으로 전환 후 검색 조건에 추가    
+    if type(starttime) == str :
+        start_time = convert_string_to_date(starttime,'%Y-%m-%d %H:%M:%S')
+    else: 
+        start_time = starttime
+    
+    if type(endtime) == str :
+        end_time = convert_string_to_date(endtime,'%Y-%m-%d %H:%M:%S')
+    else:
+        end_time = endtime
+        
     if (start_time - end_time) > datetime.timedelta(0):
         start_time, end_time = end_time, start_time
-    conditions['pubDate__range'] = (start_time, end_time)
-    print(conditions)
+    conditions['pubDate__range'] = (start_time, end_time)    
 
-    # News 모델의 Cat 컬럼은 manytomany이므로 오브젝트를 실제로 불러와서 피교해야함    
+    # News 모델의 Cat 컬럼은 manytomany이므로 오브젝트를 실제로 불러와서 비교해야함    
     if len(category) == 0:
         # 카테고리를 선택하지 않았으면 pass
         pass
@@ -238,23 +239,47 @@ def search_news(startime, endtime, category=[]):
         # 카테고리를 선택했으면 조건에 추가
         category_obj = get_model_obj_from_list(category,'scrapper',"Keywords", "keyword")
         conditions['cat__in'] = category_obj
-        print(conditions)
 
     # News에서 지정한 기간과 검색어가 포함된 뉴스를 검색해서 역정렬#    
-    search_result = models.News.objects.filter(**conditions).distinct().order_by('-pubDate')       
-    return search_result   
+    search_result = models.News.objects.filter(**conditions).distinct().order_by(*order)
+    return search_result
 
-        
-def load_news(start_time, w_day):    
+
+def news_to_string(news):
+    # news는 Model 오브젝트기 때문에 컨텍스트로 넘기려면 string으로 변환해줘야 함
+    string_news = {
+        'title': news.title,
+        'description': news.description,
+        'text': news.text,
+        'pubDate': convert_date_to_string(news.pubDate, '%Y-%m-%d %H:%M:%S'),        
+        'cat': ', '.join(news.cat.all().values_list('keyword', flat=True)),
+        'link': news.link,
+        'media': news.media.media_name
+        }    
+    return string_news
+
+
+def get_news(start_time, w_day):    
     scrapped_news = []
     # 가져올 기사 범위. 월요일이면 3일분 그 외는 2일분
     news_pubDate_range = 3 if w_day == 0 else 2    
-    end_time = datetime.timedelta(days=news_pubDate_range)    
+    end_time = start_time - datetime.timedelta(days=news_pubDate_range) 
     try:
-        # 지정한 범위의 기사를 pubdate 기준으로 정렬하여 가져오기        
-        picked_news = models.News.objects.filter(pubDate__range=(start_time - end_time,start_time)).order_by('-pubDate')        
-    except:        
-        # 기사가 없어서 order 에러가 나는 경우
+        # 지정한 범위의 모든 카테고리 기사를 pubdate 기준으로 정렬하여 가져오기        
+        picked_news = search_news(start_time, end_time, [], ['-pubDate']) 
+
+    except:
+        pass  
+
+    else:
+    # 가져온 기사를 json 반환하기 위해 value를 모두 string으로 변환
+        for news in picked_news:           
+            string_news = news_to_string(news)
+            # 변환한 객체를 scrapped_news에 추가
+            scrapped_news.append(string_news)
+
+    # 검색된 기사가 없을 경우
+    if len(scrapped_news) == 0:
         nothing_new = {
             'title': '검색된 기사가 없습니다.',
             'description': '다음 내용을 확인하여 주십시오.',
@@ -264,21 +289,7 @@ def load_news(start_time, w_day):
             'link': 'https://pipboy.mooo.com/git/dinner_rolls/NSProject',
             'media': '시스템 메세지'
             }
-        scrapped_news.append(nothing_new)        
-    else:
-    # 가져온 기사를 json 반환하기 위해 value를 모두 string으로 변환        
-        for news in picked_news:           
-            strValue_news = {
-                'title': news.title,
-                'description': news.description,
-                'text': news.text,
-                'pubDate': convert_date_to_string(news.pubDate, '%Y-%m-%d %H:%M:%S'),
-                'cat': ', '.join(news.cat.all().values_list('keyword', flat=True)),
-                'link': news.link,
-                'media': news.media.media_name
-            }
-            # 변환한 객체를 scrapped_news에 추가
-            scrapped_news.append(strValue_news)   
+        scrapped_news.append(nothing_new)      
     return scrapped_news
 
 
@@ -300,7 +311,7 @@ def init_manual():
     # 스크랩하고
     scrap_now(start_time, w_day)
     # load_news 호출해서 결과 리턴
-    return load_news(start_time, w_day)
+    return get_news(start_time, w_day)
 
 
 # 스캐줄러에 의해 작동할 경우
