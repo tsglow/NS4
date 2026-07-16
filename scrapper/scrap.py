@@ -215,7 +215,7 @@ def scrap_now(start_time, w_day):
             handle_news_list(news_list, word)
 
 
-def get_model_obj_from_list(list, appname,modelname, column):    
+def get_model_obj_from_list(list, appname,modelname, column):     
     result_list=[]
     target = apps.get_model(appname, modelname)
     for item in list:
@@ -226,8 +226,10 @@ def get_model_obj_from_list(list, appname,modelname, column):
             pass
     return result_list
 
+def add_search_conditions(dict,filter,tuple):
+    dict[filter] = tuple
 
-def search_news(starttime, endtime, category=[], order=['-pubDate'], field="title", word=""):
+def search_news_from_db(starttime, endtime, category=[], order=['-pubDate'], field="title", word=""):
     # 검색 조건 딕셔너리 선언
     conditions = {}    
 
@@ -235,8 +237,9 @@ def search_news(starttime, endtime, category=[], order=['-pubDate'], field="titl
     start_time = convert_string_to_date(starttime, '%Y-%m-%d %H:%M:%S')
     end_time = convert_string_to_date(endtime, '%Y-%m-%d %H:%M:%S')
     if (start_time - end_time) > datetime.timedelta(0):
-        start_time, end_time = end_time, start_time
-    conditions['pubDate__range'] = (start_time, end_time)    
+        start_time, end_time = end_time, start_time    
+    add_search_conditions(conditions,"pubDate__range", (start_time, end_time))
+    # conditions['pubDate__range'] = (start_time, end_time)    
 
     # News 모델의 Cat 컬럼은 manytomany이므로 오브젝트를 실제로 불러와서 비교해야함    
     if len(category) == 0:
@@ -245,11 +248,13 @@ def search_news(starttime, endtime, category=[], order=['-pubDate'], field="titl
     else:
         # 카테고리를 선택했으면 조건에 추가
         category_obj = get_model_obj_from_list(category,'scrapper',"Keywords", "keyword")
-        conditions['cat__in'] = category_obj
+        add_search_conditions(conditions,"cat__in",(category_obj))
+        # conditions['cat__in'] = category_obj
         
     # 단어 포함여부 조건
     if not word == "":
-        conditions[f'{field}__contains'] = word    
+        add_search_conditions(conditions,f'{field}__contains',(word))
+        # conditions[f'{field}__contains'] = word
     
     # News에서 지정한 기간과 검색어가 포함된 뉴스를 검색해서 역정렬#    
     search_result = models.News.objects.filter(**conditions).distinct().order_by(*order)
@@ -277,7 +282,7 @@ def get_news(start_time, w_day):
     end_time = start_time - datetime.timedelta(days=news_pubDate_range) 
     try:
         # 지정한 범위의 모든 카테고리 기사를 pubdate 기준으로 정렬하여 가져오기        
-        picked_news = search_news(start_time, end_time, [], ['-pubDate']) 
+        picked_news = search_news_from_db(start_time, end_time, order=['-pubDate']) 
 
     except:
         pass  
