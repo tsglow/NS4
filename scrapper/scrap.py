@@ -139,13 +139,25 @@ def get_news_list(word,start_time,w_day):
     max_display = 10
     sort = 'sim'
     start = 1
+    
+    url = f' https://naverapihub.apigw.ntruss.com/search/v1/news?query={word}&display={max_display}&start={start}&sort={sort}&format={encode_type}'
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',
+        'X-NCP-APIGW-API-KEY-ID': na_id,
+        'X-NCP-APIGW-API-KEY': na_psd 
+        }    
+
+
+    '''
+    네이버 구 API 용 url, 헤더
     url = f'https://openapi.naver.com/v1/search/news.{encode_type}?query="{word}"&display={str(int(max_display))}&start={str(int(start))}&sort={sort}'
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36',
         'X-Naver-Client-Id': na_id,
         'X-Naver-Client-Secret': na_psd 
         }    
- 
+    '''    
+     
     try:
         # 네이버 뉴스 API를 호출
         print(f' {word} 기사 검색중')
