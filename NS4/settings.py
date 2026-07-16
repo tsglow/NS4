@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-import os,json, environ
+import os,json, environ, logging, datetime
 from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -40,6 +40,37 @@ environ.Env.read_env(os.path.join(BASE_DIR,'.env'))
 
 # for logging
 CRON_LOG_PATH = os.path.join(BASE_DIR, 'django_cron.log')
+
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters":{
+        "verbose": {
+            "format": "{asctime},{levelname},{module},{message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "file": {
+            "level": "INFO",
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "filename": os.path.join(BASE_DIR,f'NS4_django_{datetime.date.today()}.log'),
+            "when": "midnight",
+            "interval": 1,
+            "backupCount": 7,
+            "encoding": "utf-8",
+            "formatter": "verbose",
+        }
+    },
+    "loggers": {
+            "scrapper": {
+                "handlers": ["file"],
+                "level": "INFO",
+            },
+    },
+}
+
 
 
 # Quick-start development settings - unsuitable for production
