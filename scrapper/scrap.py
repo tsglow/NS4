@@ -195,10 +195,12 @@ def extract_text(link, headers):
         article.parse()
         '''
     except:
-        logger.critical(f'extract_text() - newspaper4k failed to get article from {link}')
-        text = "기사 본문을 스크랩하지 못했습니다"
+        pass
     
     text = article.text
+    if len(text) < 10:
+        logger.critical(f'extract_text() - newspaper4k failed to get article from {link}')
+        text = "기사 본문을 스크랩하지 못했습니다"        
     return text
 
 
