@@ -7,12 +7,6 @@
   <link rel="icon" href="{% static 'scrapper/favicon.ico'%}"></link>
   
   <title>Security News Scrapper</title>
-  <style>
-    #loader { display: none; }
-    #tabs { display: none; }
-    #content { display: block; }    
-  </style>
-  
 </head>
 
 <body>
@@ -25,16 +19,18 @@
     <button id="scrapBtn">scrap new article</button>
   </header>
   <main>     
-    <div id="loader">
+    <div id="loader" style="display: none;">
       <center>
         <h3> 기사를 불러오는 중입니다...</h3>
       </center>      
     </div>
-    <div id="menuTabs">
-      <div class="menu" id="todayNews">News Today (총 {{articles|length}}개의 기사)</div>
-      <div class="menu" id="searchNews">News Search</div>
+    <div id="menuTabs" style="display: block;">
+      <div class="menu" id="todayNews" style="display: block;">News Today (총 {{articles|length}}개의 기사)</div>
+      <div class="menu" id="searchNews" style="display: block;">News Search</div>
+      <div class="menu" id="searchBar" style="display: block;">      
+      </div>      
     </div>
-    <div id="content">
+    <div id="content" style="display: block;">
       {% for item in articles %}
         <h3>{{item.cat}} | <a href="{{item.link}}" target="_blank">{{item.title}}</a> - {{item.media}}</h3>
         <h4>{{item.pubDate}} | <a href="{{item.link}}" target="_blank">{{item.link}}</a></h4>      
@@ -43,51 +39,7 @@
         <br/>                
       {% endfor %}
     </div>
-    <script>      
-      scrBtn = document.getElementById("scrapBtn")           
-      scrBtn.addEventListener("click", function(){
-        // loadDiv, contentDiv 선언
-        const loadDiv = document.getElementById('loader');
-        const contentDiv = document.getElementById('content');
-        const menuTabs = document.getElementById('menuTabs');
-        const todayNews = document.getElementById('todayNews');
-        const searchNews = document.getElementById('searchNews')
-        // loadDiv는 보여주고 contentDiv는 가리고 내용 삭제함
-        loadDiv.style.display = 'block';
-        menuTabs.style.display = 'none';
-        contentDiv.style.display = 'none';                
-        contentDiv.innerHTML = ''
-        
-        // django에 scrap-news url로 json 요청
-        fetch('scrap-news/')          
-          .then(response => {            
-            // console.log(response.data.article)
-            return response.json()})
-          .then(data => {            
-            const articles = data.article;                        
-            // json 의 article dictionary 안의 data를 html 엘레멘트로 만들어 contentDiv에 append
-            articles.forEach(item => {
-              const articleDiv = document.createElement('div');
-              articleDiv.innerHTML = `
-                <h3>${item.cat} | <a href="${item.link}" target="_blank">${item.title}</a> - ${item.media}</h3>
-                <h4>${item.pubDate} | <a href="${item.link}" target="_blank">${item.link}</a></h4>      
-                <h4><i>기사 요약</i> <br>${item.description}</h4>
-                <h4><i>기사 전문</i> <br>${item.text}</h4>
-                <br/>
-                <br/>
-                `;
-              contentDiv.appendChild(articleDiv);            
-            });
-            // loadDiv를 가리고 contentDiv를 표시
-            todayNews.innerText = `News Today (총 ${articles.length}개의 기사)`
-            loadDiv.style.display = 'none';
-            menuTabs.style.display = 'block';        
-            contentDiv.style.display = 'block';
-          })
-          .catch(error => console.error('기사 로딩 중 오류 발생:',error));
-        });      
-
-    </script>        
+    <script src="{% static 'scrapper/index.js'%}"></script>
   </main>  
 </body>
 </html>
