@@ -23,12 +23,15 @@
       <center>
         <h3> 기사를 불러오는 중입니다...</h3>
       </center>      
-    </div>
+    </div>    
     <div id="menuTabs" style="display: block;">
-      <div class="menu" id="todayNews" style="display: block;">News Today (총 {{articles|length}}개의 기사)</div>
-      <div class="menu" id="searchNews" style="display: block;">News Search</div>
-      <div class="menu" id="searchBar" style="display: block;">      
-      </div>      
+      <div id="menuWrapper" style="display: flex;">
+        <div id="todayNews" class="active" style="display: block;">News Today (총 {{articles|length}}개의 기사)</div>
+        <div id="searchNews" class="deactive" style="display: block;">News Search🔍</div>        
+      </div>
+      <div class="menu" id="searchBar" style="display: none;">
+
+      </div>
     </div>
     <div id="content" style="display: block;">
       {% for item in articles %}
