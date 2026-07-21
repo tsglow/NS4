@@ -3,6 +3,7 @@
 :root {
   --active-brightness: 0.85;
   --border-radius: 5px;
+  --border-radius-accent: 1px;
   --box-shadow: 2px 2px 10px;
   --color-accent: #118bee15;
   --color-bg: #fff;
@@ -73,8 +74,10 @@ header,
 main {
   margin: 0 auto;
   max-width: var(--width-content);
-  padding: 1rem 1rem;
+  padding: 1rem 1rem;  
 }
+
+
 
 hr {
   background-color: var(--color-bg-secondary);
@@ -310,10 +313,6 @@ a:active {
   filter: brightness(var(--active-brightness));
 }
 
-a b,
-a em,
-a i,
-a strong,
 button,
 input[type="submit"] {
   border-radius: var(--border-radius);
@@ -324,6 +323,7 @@ input[type="submit"] {
   margin: 0.5rem 0;
   padding: 1rem 2rem;
 }
+
 
 button,
 input[type="submit"] {
@@ -341,8 +341,6 @@ input[type="submit"]:active {
   filter: brightness(var(--active-brightness));
 }
 
-a b,
-a strong,
 button,
 input[type="submit"] {
   background-color: var(--color-link);
@@ -391,13 +389,14 @@ input[type="submit"][disabled]:hover {
   filter: none;
 }
 
-form {
-  border: 1px solid var(--color-bg-secondary);
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow) var(--color-shadow);
-  display: block;
-  max-width: var(--width-card-wide);
+form {  
+  border-left: 1px solid var(--color-bg-secondary);
+  border-right: 1px solid var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-bg-secondary);;
+  border-radius: 0 0 5px 5px;
+  box-shadow: var(--box-shadow) var(--color-shadow);   
   min-width: var(--width-card);
+  display: block;
   padding: 1.5rem;
   text-align: var(--justify-normal);
 }
@@ -438,8 +437,10 @@ select,
 textarea {
   border: 1px solid var(--color-bg-secondary);
   border-radius: var(--border-radius);
-  margin-bottom: 1rem;
-  padding: 0.4rem 0.8rem;
+  margin-right: 0.5rem;
+  margin-top: 0.3rem;
+  margin-bottom: 0.3rem;
+  padding: 0.2rem 0.2rem;
 }
 
 input[type="text"],
@@ -597,4 +598,42 @@ blockquote footer {
 *::-webkit-scrollbar-thumb {
   background-color: var(--color-scrollbar);
   border-radius: 10px;
+}
+
+
+#menuWrapper {
+  border-bottom: solid var(--color-link);
+}
+
+#todayNews.active{
+  flex: 1;    
+  background-color: var(--color-link);
+  border: 2px solid var(--color-link);
+  color: var(--color-bg);
+  text-align: center;
+}
+
+#todayNews.deactive{
+  flex: 1;
+  background-color: var(--color-shadow);
+  text-align: center;  
+}
+
+#searchNews.active{
+  flex: 1;    
+  background-color: var(--color-link);
+  border: 2px solid var(--color-link);
+  color: var(--color-bg);
+  text-align: center;
+}
+
+#searchNews.deactive{
+  flex: 1;
+  background-color: var(--color-shadow);
+  text-align: center;  
+}
+
+div.searchCondtions{
+  flex-basis:auto;
+  display: block;  
 }

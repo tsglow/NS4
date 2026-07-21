@@ -46,17 +46,21 @@ def add_search_conditions(dict,filter,tuple):
 # 기사 검색용 함수
 def search_news_from_db(starttime, endtime, category=[], order=['-pubDate'], field="title", word=""):
     # 검색 조건 딕셔너리 선언
-    conditions = {}    
+    conditions = {}
 
     # 검색 기간. 입력된 기간이 string이면 datetime 객체로 변환하고, start_time 이 end_time보다 최근이면 역으로 전환 후 검색 조건에 추가    
-    start_time = convert_string_to_date(starttime, '%Y-%m-%d %H:%M:%S')
-    end_time = convert_string_to_date(endtime, '%Y-%m-%d %H:%M:%S')
+    start_time = convert_string_to_date(starttime, '%Y-%m-%dT%H:%M')
+    end_time = convert_string_to_date(endtime, '%Y-%m-%dT%H:%M')    
+    #start_time = convert_string_to_date(starttime, '%Y-%m-%d %H:%M:%S')
+    #end_time = convert_string_to_date(endtime, '%Y-%m-%d %H:%M:%S')
     if (start_time - end_time) > datetime.timedelta(0):
         start_time, end_time = end_time, start_time
     add_search_conditions(conditions,"pubDate__range", (start_time, end_time))
     # conditions['pubDate__range'] = (start_time, end_time)    
 
     # News 모델의 Cat 컬럼은 manytomany이므로 오브젝트를 실제로 불러와서 비교해야함    
+    print(category, len(category))
+    
     if len(category) == 0:
         # 카테고리를 선택하지 않았으면 pass
         pass
@@ -82,38 +86,32 @@ def search_news_from_db(starttime, endtime, category=[], order=['-pubDate'], fie
 
 
 # 함수명칭을 좀 바꿔야 할 듯. get news json?
-def get_news(start_time, w_day):     
-    scrapped_news = []
+def get_news(queryset):     
+    news_list = []
     # 가져올 기사 범위. 월요일이면 3일분 그 외는 2일분
-    news_pubDate_range = 3 if w_day == 0 else 2    
-    end_time = start_time - datetime.timedelta(days=news_pubDate_range) 
-
+        # 가져온 기사를 json 반환하기 위해 value를 모두 string으로 변환
     try:
-        # 지정한 범위의 모든 카테고리 기사를 pubdate 기준으로 정렬하여 가져오기        
-        picked_news = search_news_from_db(start_time, end_time, order=['-pubDate'])        
-    except:
-        pass  
-    else:
-    # 가져온 기사를 json 반환하기 위해 value를 모두 string으로 변환
-        for news in picked_news:           
+        for news in queryset:           
             string_news = news_to_string(news)
             # 변환한 객체를 scrapped_news에 추가
-            scrapped_news.append(string_news)
-
+            news_list.append(string_news)
+    except:
+        pass
+    
     # 검색된 기사가 없을 경우
-    if len(scrapped_news) == 0:
+    if len(news_list) == 0:
         logger.warning(f'get_news() - there was no article in DB. check settings and logs')
         nothing_new = {
             'title': '검색된 기사가 없습니다.',
             'description': '다음 내용을 확인하여 주십시오.',
             'text': '1. 설정된 검색어가 너무 적은 경우 실제로 관련 기사가 없을 수 있습니다. 뉴스 포탈사이트에서 지난 2~3일간의 기사를 직접 검색해 보십시오. 2. 해당 키워드로 기사가 검색되는 경우, django의 로그를 확인하여 주십시오.',
-            'pubDate': convert_date_to_string(start_time,'%Y-%m-%d %H:%M:%S'),
+            'pubDate': convert_date_to_string(datetime.datetime.now(),'%Y-%m-%d %H:%M:%S'),
             'cat': '기타',
             'link': 'https://pipboy.mooo.com/git/dinner_rolls/NSProject',
             'media': '시스템 메세지'
             }
-        scrapped_news.append(nothing_new)      
-    return scrapped_news
+        news_list.append(nothing_new)      
+    return news_list
 
 
 # 스트링을 form 에 지정한 형식의 datetime 객체로 변환
@@ -355,7 +353,10 @@ def init_manual():
     # 스크랩하고
     scrap_now(start_time, w_day)
     # load_news 호출해서 결과 리턴
-    return get_news(start_time, w_day)
+    news_pubDate_range = 3 if w_day == 0 else 2    
+    end_time = start_time - datetime.timedelta(days=news_pubDate_range)
+    picked_news = search_news_from_db(start_time, end_time, order=['-pubDate'])
+    return get_news(picked_news)
 
 
 # 스캐줄러에 의해 작동할 경우

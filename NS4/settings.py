@@ -16,7 +16,8 @@ from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+LOG_DIR = os.path.join(DATA_DIR, 'logs')
 
 # for secret
 secret_file_path = os.path.join(BASE_DIR, 'secrets.json')
@@ -39,7 +40,7 @@ ns4env = environ.Env(
 environ.Env.read_env(os.path.join(BASE_DIR,'.env'))
 
 # for logging
-CRON_LOG_PATH = os.path.join(BASE_DIR, 'django_cron.log')
+CRON_LOG_PATH = os.path.join(LOG_DIR, 'NS4_cronjob.log')
 
 LOGGING = {
     "version": 1,
@@ -51,9 +52,9 @@ LOGGING = {
         },
     },
     "handlers": {
-        "file_dj": {            
+        "file_scrapper": {            
             "class": "logging.handlers.TimedRotatingFileHandler",
-            "filename": os.path.join(BASE_DIR,'NS4_django.log'),
+            "filename": os.path.join(LOG_DIR,'NS4_scrapper.log'),
             "when": "midnight",
             "interval": 1,
             "backupCount": 7,
@@ -67,7 +68,7 @@ LOGGING = {
     },
     "loggers": {
             "scrapper": {
-                "handlers": ["file_dj","console"],
+                "handlers": ["file_scrapper","console"],
                 "level": "INFO",
             },
     },
@@ -191,7 +192,7 @@ USE_TZ = True
 
 STATIC_URL = 'static4/'
 STATIC_ROOT = '/web/webroot/static_ns4'
-DATA_DIR = os.path.join(BASE_DIR, 'data')
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
