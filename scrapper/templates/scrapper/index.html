@@ -18,24 +18,57 @@
     <h4> 현재 KISA 인터넷 침해사고 경보단계 : <font color="#cc0101"><b>{{t_info}}</b></font> </h4>     -->    
     <button id="scrapBtn">scrap new article</button>
   </header>
-  <main>     
-    <div id="loader" style="display: none;">
-      <center>
-        <h3> 기사를 불러오는 중입니다...</h3>
-      </center>      
-    </div>    
+  <main>         
     <div id="menuTabs" style="display: block;">
+      
       <div id="menuWrapper" style="display: flex;">
         <div id="todayNews" class="active" style="display: block;">News Today (총 {{articles|length}}개의 기사)</div>
         <div id="searchNews" class="deactive" style="display: block;">News Search🔍</div>        
       </div>
-      <div class="menu" id="searchBar" style="display: none;">
-        <form method="GET" action="search-news/">
-          {% csrf_token %}
-          {{searchform}}
-          <button type="submit">search</button>
+
+      <div id="searchBar" style="display: none;">
+        <form id="searchForm">          
+          <div class="menu Top" style="display: flex; justify-content: space-between; gap: 15px;">
+            <div class="searchCondtions" style="flex:1;">
+              {{searchform.start_time.label_tag}}
+              {{searchform.start_time}}
+            </div>            
+            <div class="searchCondtions" style="flex:1;">
+              {{searchform.end_time.label_tag}}
+              {{searchform.end_time}}
+            </div>            
+            <div class="searchCondtions" style="flex:1;">                            
+                {{searchform.order.label_tag}}
+                {{searchform.order}}              
+            </div>
+            <div class="searchCondtions" style="flex:1;">              
+                {{searchform.cat.label_tag}}
+                {{searchform.cat}}              
+            </div>
+          </div>
+          <div class="menu Bottom" style="display: flex; justify-content: space-between; gap: 15px;"> 
+            <div class="searchCondtions" style="flex:1;">
+              {{searchform.field.label_tag}}
+              {{searchform.field}}
+            </div>                        
+            <div class="searchCondtions" style="flex:2;">
+              {{searchform.word.label_tag}}
+              {{searchform.word}}
+            </div>                        
+            <div class="searchCondtions" style="flex:1;">
+              <button type="submit">search</button>
+            </div>            
+          </div>          
         </form>
+        <div id="searchResult" style="display: none;"></div>
       </div>
+
+    </div>
+    
+    <div id="loader" style="display: none;">
+      <center>
+        <h3> 기사를 불러오는 중입니다...</h3>
+      </center>      
     </div>
     <div id="content" style="display: block;">
       {% for item in articles %}
@@ -45,7 +78,7 @@
         <h4><i>기사 전문</i> <br>{{item.text}}</h4>
         <br/>                
       {% endfor %}
-    </div>
+    </div>    
     <script src="{% static 'scrapper/index.js'%}"></script>
   </main>  
 </body>

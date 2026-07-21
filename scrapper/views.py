@@ -22,10 +22,10 @@ def scrap_news(reqeust):
 def search_news(request):
     start_time = request.GET['start_time']
     end_time = request.GET['end_time']
-    cat = request.GET['cat']
+    cat = [] if request.GET['cat'] == 'All' else [request.GET['cat']]
     order = request.GET['order']    
     field = request.GET['field']
-    word = request.GET['word']     
-    result = scrap.search_news_from_db(start_time, end_time, [cat], [order], field, word)    
+    word = request.GET['word']    
+    result = scrap.search_news_from_db(start_time, end_time, cat, [order], field, word)    
     result_json = {'article': scrap.get_news(result)}
     return JsonResponse(result_json)

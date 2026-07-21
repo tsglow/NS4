@@ -59,6 +59,8 @@ def search_news_from_db(starttime, endtime, category=[], order=['-pubDate'], fie
     # conditions['pubDate__range'] = (start_time, end_time)    
 
     # News 모델의 Cat 컬럼은 manytomany이므로 오브젝트를 실제로 불러와서 비교해야함    
+    print(category, len(category))
+    
     if len(category) == 0:
         # 카테고리를 선택하지 않았으면 pass
         pass
