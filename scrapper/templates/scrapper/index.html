@@ -30,7 +30,11 @@
         <div id="searchNews" class="deactive" style="display: block;">News Search🔍</div>        
       </div>
       <div class="menu" id="searchBar" style="display: none;">
-
+        <form method="GET" action="search-news/">
+          {% csrf_token %}
+          {{searchform}}
+          <button type="submit">search</button>
+        </form>
       </div>
     </div>
     <div id="content" style="display: block;">
