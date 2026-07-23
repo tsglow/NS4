@@ -59,8 +59,7 @@ def search_news_from_db(starttime, endtime, category=[], order=['-pubDate'], fie
     # conditions['pubDate__range'] = (start_time, end_time)    
 
     # News 모델의 Cat 컬럼은 manytomany이므로 오브젝트를 실제로 불러와서 비교해야함    
-    print(category, len(category))
-    
+    # print(category, len(category))    
     if len(category) == 0:
         # 카테고리를 선택하지 않았으면 pass
         pass
@@ -193,11 +192,12 @@ def extract_text(link, headers):
         article.download()
         article.parse()
         '''
-    except:
-        text = ""    
+    except Exception as e:
+        logger.warning(f'extract_text() - {e}')
+        text = ""   
     
     if len(text) < 10:
-        logger.critical(f'extract_text() - newspaper4k failed to get article from {link}')
+        logger.warning(f'extract_text() - newspaper4k failed to get article from {link}')
         text = "기사 본문을 스크랩하지 못했습니다"        
     return text
 
@@ -232,11 +232,14 @@ def make_article(word,news):
         media = media_obj
     )
 
+    try:
     # 객체 저장
-    article_obj.save()
-
-    # 검색어 오브젝트는 다대다 관계이기 때문에 위의 오브젝트를 저장한 후에 add로 추가해야 함 
-    article_obj.cat.add(cat_obj)   
+        article_obj.save()
+        # 검색어 오브젝트는 다대다 관계이기 때문에 위의 오브젝트를 저장한 후에 add로 추가해야 함 
+        article_obj.cat.add(cat_obj)
+    except Exception as e:
+        logger.error(f'make_article() - {e}')
+        pass
 
 
 # 중복기사와 신규기사 처리

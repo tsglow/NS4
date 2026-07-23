@@ -32,7 +32,7 @@ class News(models.Model):
     text = models.TextField()
     pubDate = models.DateTimeField()
     cat = models.ManyToManyField(Keywords, related_name="category")
-    link = models.URLField()     
+    link = models.URLField(unique=True)     
     media = models.ForeignKey(Media, default="unknown", on_delete=models.SET_DEFAULT)
     
     def __str__(self):

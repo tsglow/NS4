@@ -44,6 +44,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-y: scroll;
 }
 
 @media (prefers-reduced-motion: reduce) {
