@@ -70,8 +70,45 @@ function swapActivity(el1, el2, content1, content2){
 }
 
 
+function getPeriod(){
+    const start = new Date();
+    const end = new Date();
+    start.getDay() === 1 ? end.setDate(end.getDate() - 3) : end.setDate(end.getDate() - 2);
+    return [start,end];
+}
+
+
+function dateToString(date){
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}%3A${minutes}`;
+}
+
 // listeners
-scrapBtn.addEventListener("click", async function(){    
+window.addEventListener("load", async function() {
+    const [start, end] = getPeriod();
+    const query = `start_time=${dateToString(start)}&end_time=${dateToString(end)}&order=-pubDate&cat=All&field=title&word=`;
+    const queryParams = new URLSearchParams(query);
+    const resultJson = await getJsonWithForm(        
+        `search-news/?${queryParams.toString()}`,
+        {method: 'GET'},
+        'article'
+    );
+    await renderNews(resultJson,contentDiv);    
+    todayNews.innerText = `News Today (총 ${resultJson.length}개의 기사)`;
+
+    invertDisplay(scrapBtn,"block"); 
+    invertDisplay(loadDiv,"none");
+    invertDisplay(menuTabs,"block");
+    invertDisplay(contentDiv,"block");
+});
+
+
+scrapBtn.addEventListener("click", async function(){  
+    invertDisplay(scrapBtn,"none");   
     invertDisplay(loadDiv,"block");    
     invertDisplay(menuTabs,"none");    
     invertDisplay(contentDiv,"none");
@@ -81,6 +118,7 @@ scrapBtn.addEventListener("click", async function(){
     await renderNews(newsJson,contentDiv);
     todayNews.innerText = `News Today (총 ${newsJson.length}개의 기사)`;
 
+    invertDisplay(scrapBtn,"block");  
     invertDisplay(loadDiv,"none");
     invertDisplay(menuTabs,"block");
     invertDisplay(contentDiv,"block");
