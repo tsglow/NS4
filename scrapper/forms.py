@@ -25,8 +25,7 @@ class SearchForm(forms.Form):
     cat = forms.ChoiceField(choices=cat_options, label="뉴스 카테고리")
 
     
-    field_options = [
-        ('title', '선택'),
+    field_options = [        
         ('title', '제목'),
         ('description', '기사 요약'),
         ('text', '기사 본문'),

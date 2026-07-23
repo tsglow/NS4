@@ -186,6 +186,7 @@ def extract_media(link, headers):
 def extract_text(link, headers):    
     try:
         article = newspaper.article(link, headers=headers, verify=False)
+        text = article.text
         '''
         newspaper3k에서 사용하던 방식
         article = newspaper.Article(link, language='ko', headers=headers, verify=False)
@@ -193,9 +194,8 @@ def extract_text(link, headers):
         article.parse()
         '''
     except:
-        pass
+        text = ""    
     
-    text = article.text
     if len(text) < 10:
         logger.critical(f'extract_text() - newspaper4k failed to get article from {link}')
         text = "기사 본문을 스크랩하지 못했습니다"        
