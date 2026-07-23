@@ -12,15 +12,12 @@
 <body>
   <header>
     <h1>
-      <a href="/">Security News Scrapper</a>
-    </h1>    
-    <!--
-    <h4> 현재 KISA 인터넷 침해사고 경보단계 : <font color="#cc0101"><b>{{t_info}}</b></font> </h4>     -->    
-    <button id="scrapBtn">scrap new article</button>
+      <a href="/">Security News Scrapper</a>           
+    </h1>
+    <center><button id="scrapBtn" style="display: none;">scrap new article</button></center> 
   </header>
   <main>         
-    <div id="menuTabs" style="display: block;">
-      
+    <div id="menuTabs" style="display: none;">           
       <div id="menuWrapper" style="display: flex;">
         <div id="todayNews" class="active" style="display: block;">News Today (총 {{articles|length}}개의 기사)</div>
         <div id="searchNews" class="deactive" style="display: block;">News Search🔍</div>        
@@ -65,19 +62,12 @@
 
     </div>
     
-    <div id="loader" style="display: none;">
+    <div id="loader" style="display: block;">
       <center>
-        <h3> 기사를 불러오는 중입니다...</h3>
+        <h3>기사를 불러오는 중입니다</h3>
       </center>      
     </div>
-    <div id="content" style="display: block;">
-      {% for item in articles %}
-        <h3>{{item.cat}} | <a href="{{item.link}}" target="_blank">{{item.title}}</a> - {{item.media}}</h3>
-        <h4>{{item.pubDate}} | <a href="{{item.link}}" target="_blank">{{item.link}}</a></h4>      
-        <h4><i>기사 요약</i> <br>{{item.description}}</h4>
-        <h4><i>기사 전문</i> <br>{{item.text}}</h4>
-        <br/>                
-      {% endfor %}
+    <div id="content" style="display: none;">
     </div>    
     <script src="{% static 'scrapper/index.js'%}"></script>
   </main>  

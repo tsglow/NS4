@@ -1,6 +1,7 @@
 import logging,newspaper, datetime, requests, bs4, urllib3
 from django.apps import apps
 from django.conf import settings
+from django.utils import timezone as djtz
 from . import models
 # bottom to top 순으로 init_auto()에서 호출되는 함수를 나열
 # 메서드 호출시 출처 가시성을 위해 되도록 상위 객체로 import함
@@ -10,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 # date 객체를 form에 입력한 형식의 스트링으로 변환
 def convert_date_to_string(time, form):    
-    return time.strftime(form)
+    return djtz.localtime(time).strftime(form)
 
 # news는 Model 오브젝트기 때문에 컨텍스트로 넘기려면 string으로 변환해줘야 함
 def news_to_string(news):    
