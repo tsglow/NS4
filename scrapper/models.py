@@ -17,7 +17,7 @@ class Media(models.Model):
 
 
 class Keywords(models.Model):
-    keyword = models.CharField(max_length=100)
+    keyword = models.CharField(max_length=100, unique=True)
     
     def __str__(self):
         return self.keyword

@@ -101,11 +101,12 @@ def get_news(queryset):
     # 검색된 기사가 없을 경우
     if len(news_list) == 0:
         logger.warning(f'get_news() - there was no article in DB. check settings and logs')
+        tz = datetime.timezone(datetime.timedelta(hours=9))
         nothing_new = {
             'title': '검색된 기사가 없습니다.',
             'description': '다음 내용을 확인하여 주십시오.',
             'text': '1. 설정된 검색어가 너무 적은 경우 실제로 관련 기사가 없을 수 있습니다. 뉴스 포탈사이트에서 지난 2~3일간의 기사를 직접 검색해 보십시오. 2. 해당 키워드로 기사가 검색되는 경우, django의 로그를 확인하여 주십시오.',
-            'pubDate': convert_date_to_string(datetime.datetime.now(),'%Y-%m-%d %H:%M:%S'),
+            'pubDate': convert_date_to_string(datetime.datetime.now(tz=tz),'%Y-%m-%d %H:%M:%S'),
             'cat': '기타',
             'link': 'https://pipboy.mooo.com/git/dinner_rolls/NSProject',
             'media': '시스템 메세지'
@@ -183,9 +184,21 @@ def extract_media(link, headers):
 
 
 # newspaper4k로 뉴스 본문 추출
-def extract_text(link, headers):    
+def extract_text(link, headers): 
+    agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36'   
     try:
-        article = newspaper.article(link, headers=headers, verify=False)
+        article = newspaper.article(link, browser_user_agent=agent, language='ko')
+        article.download()
+        article.parse()
+        text = article.text
+
+        '''
+        article = newspaper.article(link, browser_user_agent=agent)
+        # article = newspaper.article(link, headers=headers, verify=False)
+        text = article.text
+        '''
+        article = newspaper.article(link, browser_user_agent=agent)
+        # article = newspaper.article(link, headers=headers, verify=False)
         text = article.text
         '''
         newspaper3k에서 사용하던 방식

@@ -148,63 +148,6 @@ section header {
   width: 100%;
 }
 
-/* Nav */
-nav {
-  align-items: center;
-  display: flex;
-  font-weight: bold;
-  justify-content: space-between;
-  margin-bottom: 7rem;
-}
-
-nav ul {
-  list-style: none;
-  padding: 0;
-}
-
-nav ul li {
-  display: inline-block;
-  margin: 0 0.5rem;
-  position: relative;
-  text-align: left;
-}
-
-/* Nav Dropdown */
-nav ul li:hover ul {
-  display: block;
-}
-
-nav ul li ul {
-  background: var(--color-bg);
-  border: 1px solid var(--color-bg-secondary);
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow) var(--color-shadow);
-  display: none;
-  height: auto;
-  left: -2px;
-  padding: 0.5rem 1rem;
-  position: absolute;
-  top: 1.7rem;
-  white-space: nowrap;
-  width: auto;
-  z-index: 1;
-}
-
-nav ul li ul::before {
-  /* fill gap above to make mousing over them easier */
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -0.5rem;
-  height: 0.5rem;
-}
-
-nav ul li ul li,
-nav ul li ul li a {
-  display: block;
-}
-
 /* Nav for Mobile */
 @media (max-width: 768px) {
   nav {
@@ -223,26 +166,6 @@ nav ul li ul li a {
   }
 }
 
-/* Typography */
-code,
-samp {
-  background-color: var(--color-accent);
-  border-radius: var(--border-radius);
-  color: var(--color-text);
-  display: inline-block;
-  margin: 0 0.1rem;
-  padding: 0 0.5rem;
-}
-
-details {
-  margin: 1.3rem 0;
-}
-
-details summary {
-  font-weight: bold;
-  cursor: pointer;
-}
-
 h1,
 h2,
 h3,
@@ -253,8 +176,8 @@ h6 {
   text-wrap: balance;
 }
 
-mark {
-  padding: 0.1rem;
+h4.newsText {
+  text-align: justify;
 }
 
 ol li,
@@ -266,36 +189,6 @@ p {
   margin: 0.75rem 0;
   padding: 0;
   width: 100%;
-}
-
-pre {
-  margin: 1rem 0;
-  max-width: var(--width-card-wide);
-  padding: 1rem 0;
-}
-
-pre code,
-pre samp {
-  display: block;
-  max-width: var(--width-card-wide);
-  padding: 0.5rem 2rem;
-  white-space: pre-wrap;
-}
-
-small {
-  color: var(--color-text-secondary);
-}
-
-sup {
-  background-color: var(--color-secondary);
-  border-radius: var(--border-radius);
-  color: var(--color-bg);
-  font-size: xx-small;
-  font-weight: bold;
-  margin: 0.2rem;
-  padding: 0.2rem 0.3rem;
-  position: relative;
-  top: -2px;
 }
 
 /* Links */
@@ -360,20 +253,6 @@ a i {
 
 article aside a {
   color: var(--color-secondary);
-}
-
-/* Images */
-figure {
-  margin: 0;
-  padding: 0;
-}
-
-figure img {
-  max-width: 100%;
-}
-
-figure figcaption {
-  color: var(--color-text-secondary);
 }
 
 /* Forms */
@@ -461,46 +340,6 @@ label {
   margin-bottom: 0.2rem;
 }
 
-/* Popups */
-dialog {
-  max-width: 90%;
-  max-height: 85dvh;
-  margin: auto;
-  padding-block: 0;
-  padding-inline: 20px;
-  border: 1px solid var(--color-bg-secondary);
-  border-radius: 0.5rem;
-  overscroll-behavior: contain;
-  scroll-behavior: smooth;
-  scrollbar-width: none; /* Hide scrollbar for Firefox */
-  -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
-  scrollbar-color: transparent transparent;
-  animation: bottom-to-top 0.25s ease-in-out forwards;
-}
-
-dialog::-webkit-scrollbar {
-  width: 0;
-  display: none;
-}
-
-dialog::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-dialog::-webkit-scrollbar-thumb {
-  background-color: transparent;
-}
-
-@media (min-width: 650px) {
-  dialog {
-    max-width: 39rem;
-  }
-}
-
-dialog::backdrop {
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
 @keyframes bottom-to-top {
   0% {
     opacity: 0;
@@ -511,10 +350,6 @@ dialog::backdrop {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-dialog hr {
-  margin-block: 1rem;
 }
 
 /* Tables */

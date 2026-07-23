@@ -13,7 +13,7 @@ const searchResult = document.getElementById('searchResult');
 
 
 // template for html rendering
-const IndividualNewsTemplate = '<h3>${dict.cat} | <a href="${dict.link}" target="_blank">${dict.title}</a> - ${dict.media}</h3><h4>${dict.pubDate} | <a href="${dict.link}" target="_blank">${dict.link}</a></h4><h4><i>기사 요약</i> <br>${dict.description}</h4><h4><i>기사 전문</i> <br>${dict.text}</h4><br/><br/>';
+const IndividualNewsTemplate = '<h3>${dict.cat} | <a href="${dict.link}" target="_blank">${dict.title}</a> - ${dict.media}</h3><h4>${dict.pubDate} | <a href="${dict.link}" target="_blank">${dict.link}</a></h4><h4><i>기사 요약</i> <br>${dict.description}</h4><h4 class="newsText"><i>기사 전문</i> <br>${dict.text}</h4><br/><br/>';
 
 
 
@@ -90,10 +90,9 @@ function dateToString(date){
 // listeners
 window.addEventListener("load", async function() {
     const [start, end] = getPeriod();
-    const query = `start_time=${dateToString(start)}&end_time=${dateToString(end)}&order=-pubDate&cat=All&field=title&word=`;
-    const queryParams = new URLSearchParams(query);
-    const resultJson = await getJsonWithForm(        
-        `search-news/?${queryParams.toString()}`,
+    const query = `start_time=${dateToString(start)}&end_time=${dateToString(end)}&order=-pubDate&cat=All&field=title&word=`;  
+    const resultJson = await getJsonWithForm(   
+        `search-news/?${query}`,       
         {method: 'GET'},
         'article'
     );
